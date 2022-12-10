@@ -179,19 +179,18 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                 print(new_kl < self.max_kl)
 
                 if (new_improved_loss.item() < 0.0) and (new_kl < self.max_kl):
-                    print("New_improved_loss", new_improved_loss)
+                    print("### Best loss ", new_improved_loss)
                     print("kl_post", new_kl)
                     logs['inner_post'] = new_inner_loss
                     logs['loss_post'] = new_improved_loss
                     logs['kl_post'] = new_kl
                     break
                 else:
-                    print("############# current new_improved_loss and max kl",
-                          new_improved_loss.item(),
-                          new_kl.item(),
-                          self.max_kl.item())
+                    print("############# current improved "
+                          "loss {:.4} kl {:.4} max {:.4}".format(new_improved_loss.item(),
+                                                                 new_kl.item(), self.max_kl.item()))
                 # else:
-                    # print("improved")
+                # print("improved")
                 step_size *= self.ls_backtrack_ratio
             else:
                 vec2parameters(old_params, self.policy.parameters())
