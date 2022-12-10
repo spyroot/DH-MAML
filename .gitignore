@@ -5,6 +5,12 @@ __.pytest_cache__/
 *$py.class
 .idea/*
 *.xml
+ .idea/.idea/DH-MAML.iml
+ idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
 
 # C extensions
 *.so
