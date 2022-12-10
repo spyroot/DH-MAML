@@ -186,7 +186,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                     logs['kl_post'] = new_kl
                     break
                 else:
-                    print("current new_improved_loss and max kl",
+                    print("############# current new_improved_loss and max kl",
                           new_improved_loss.item(),
                           new_kl.item(),
                           self.max_kl.item())

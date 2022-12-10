@@ -1,7 +1,3 @@
-"""
-This main running config for a trainer.
-Mus
-"""
 import argparse
 import json
 import os
@@ -70,11 +66,10 @@ class RunningSpec:
         """ Resolve all paths to all model files.
         :return:
         """
-        print("Resloving", self.experiment_name)
         p = Path(self._model_dir)
         print(p)
         # model and optimizer
-        self.update("model_state_file", f"{p}/models/{self.experiment_name}.th", root="model_files")
+        self.update("model_state_file", str(p / "model_state.th"), root="model_files")
         self.update("model_opt_state_file", str(p / "model_opt_state.th"), root="model_files")
         # metric and log traces
         self.update("metric_file", str(p / "metric.json"), root="model_files")
@@ -315,22 +310,15 @@ class RunningSpec:
         return str(self.show())
 
     def get(self, param, root: Optional[str] = None):
-        """
-
-        :param param:
-        :param root:
-        :return:
-        """
         if self._debug:
             print(f"Get value {param} {root}")
         return self._get_spec_val(param, root)
 
     def contains(self, k: str, root: Optional[str] = None):
-        """Return true if spec has a given config entry exists
-        in root section or subsection
-        :param root: a root section of config.
+        """Return true if spec has a given section
+        :param root:  a root section of config.
         :param k:
-        :return: If spec contains a given key.
+        :return: If spec contains a givne key.
         """
         _config_section = self._running_config
         if root is not None:
