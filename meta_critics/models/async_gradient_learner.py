@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC
 
-from meta_critics.metalearners.gradient_learner import GradientMetaLearner
+from meta_critics.models.gradient_learner import GradientMetaLearner
 from meta_critics.policies.policy import Policy
 from meta_critics.running_spec import RunningSpec
 

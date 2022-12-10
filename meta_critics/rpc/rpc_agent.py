@@ -24,7 +24,7 @@ from meta_critics.rpc.rpc_observer import RpcObservers
 from meta_critics.rpc.shared_vars import OBSERVER_NAME
 from meta_critics.running_spec import RunningSpec
 from meta_critics.trajectory.advantage_episode import AdvantageBatchEpisodes
-from meta_critics.metalearners.async_trpo import ConcurrentMamlTRPO
+from meta_critics.models.async_trpo import ConcurrentMamlTRPO
 from meta_critics.base_trainer.internal.utils import to_numpy
 
 

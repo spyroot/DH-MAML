@@ -7,7 +7,7 @@ from torch.nn.utils.convert_parameters import parameters_to_vector
 
 from meta_critics.base_trainer.torch_tools.param_tools import vec2parameters
 from meta_critics.base_trainer.torch_tools.torch_utils import weighted_mean
-from meta_critics.metalearners.async_gradient_learner import AsyncGradientBasedMetaLearner
+from meta_critics.models.async_gradient_learner import AsyncGradientBasedMetaLearner
 from meta_critics.optimizers.optimization import conjugate_gradient
 from meta_critics.policies.distribution_util import detach_dist_from_policy
 from meta_critics.policies.policy import Policy

@@ -10,7 +10,7 @@ from meta_critics.base_trainer.torch_tools.torch_utils import (weighted_mean)
 from meta_critics.running_spec import RunningSpec
 from meta_critics.base_trainer.torch_tools.param_tools import vec2parameters
 from meta_critics.base_trainer.torch_tools.tensor_tools import to_numpy
-from meta_critics.metalearners.gradient_learner import GradientMetaLearner
+from meta_critics.models.gradient_learner import GradientMetaLearner
 
 
 class Maml_TRPO(GradientMetaLearner):
