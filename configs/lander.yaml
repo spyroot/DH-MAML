@@ -1,0 +1,48 @@
+experiment_name: "turbulencelander"
+env_name: "turbulencelander-v0"
+
+env-args:
+  max_episode_steps: 100
+
+
+log_dir: "~/meta_critics/logs/lander_discrete"
+model_dir: "~/meta_critics/models/lander_discrete"
+create_dir: True
+
+
+trainer:
+  # Discount factor gamma.
+  type: distributed_rpc
+  save_freq: 20
+  meta_test_freq: 20
+  gamma_factor: 0.99
+  gae_lambda_factor: 1.0
+  use_discount_gamma: True
+  resume: True
+  use_gae: True
+  num-workers: 1
+
+# Policy network
+policy_network:
+  hidden_sizes: [64, 64]
+  activation: "tanh"
+
+trajectory_sampler:
+  remap_types: True
+
+meta_task:
+  num_meta_task: 40
+  num_trajectory: 20
+  num_steps: 1
+  fast_lr: 0.1
+  num_batches: 2
+  first_order: false
+
+model:
+  name: trpo
+  model_type: AsyncMAMLTRPO
+  max_kl: 1.0e-2
+  cg_iters: 10
+  ls_max_steps: 15
+  ls_backtrack_ratio: 0.8
+  cg_damping: 1.0e-5

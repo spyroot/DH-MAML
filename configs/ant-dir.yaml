@@ -1,0 +1,48 @@
+env-name: "AntDir-v2"
+experiment_name: "antdir"
+env_name: "Ant-v4dir-v4"
+
+env-args:
+  max_episode_steps: 100
+  continuous: True
+
+log_dir: "~/meta_critics/logs/antdir"
+model_dir: "~/meta_critics/models/antdir"
+create_dir: True
+
+trainer:
+  # Discount factor gamma.
+  type: distributed_rpc
+  save_freq: 20
+  meta_test_freq: 20
+  use_gae: True
+  gamma_factor: 0.99
+  gae_lambda_factor: 1.0  # Discount factor lambda used in "Generalized Advantage Estimation" (GAE).
+  use_discount_gamma: True
+  resume: True
+  num-workers: 1
+
+# Policy network
+policy_network:
+  hidden_sizes: [64, 64]
+  activation: "tanh"
+
+trajectory_sampler:
+  remap_types: False
+
+meta_task:
+  num_meta_task: 40     # number of meta task in batch
+  num_trajectory: 20   # Number of trajectories to sample for each task.
+  num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.
+  fast_lr: 0.1          # Step size for each gradient step in the inner loop / fast adaptation.
+  num_batches: 500      # outer-loop updates
+  first_order: false
+
+model:
+  name: trpo
+  model_type: AsyncMAMLTRPO  # model type.
+  max_kl: 1.0e-2             # trpo max kl term
+  cg_iters: 10               # Number of iterations of Conjugate Gradient.
+  cg_damping: 1.0e-5         # Value of the damping in Conjugate Gradient.
+  ls_max_steps: 15           # Maximum number of steps in the line search.
+  ls_backtrack_ratio: 0.8    # Ratio to use for

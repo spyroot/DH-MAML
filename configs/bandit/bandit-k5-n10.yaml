@@ -1,0 +1,42 @@
+experiment_name: "bandits_k5"
+env_name: "Bandit-K5-v0"
+
+log_dir: "~/meta_critics/logs/bandit_k5"
+model_dir: "~/meta_critics/models/bandit_k5"
+create_dir True:
+
+trainer:
+  sampler: distributed_rpc
+  save_freq: 100
+  meta_test_freq: 100
+  use_gae: True
+  gamma_factor: 0.95
+  gae_lambda_factor: 1.0
+  use_discount_gamma: True
+  resume: True
+  num-workers: 1
+
+trajectory_sampler:
+  remap_types: True
+
+# Policy network
+policy_network:
+  hidden_sizes: [32, 32]
+  activation: "relu"
+
+meta_task:
+  num_meta_task: 20
+  num_trajectory: 10    # Number of trajectories to sample for each task.
+  num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.
+  fast_lr: 0.5          # Step size for each gradient step in the inner loop / fast adaptation.
+  num_batches: 2        # outer-loop updates
+  first_order: false
+
+model:
+  name: trpo
+  model_type: AsyncMAMLTRPO  # model type.
+  max_kl: 1.0e-2             #Size of the trust-region
+  cg_iters: 10               # Number of iterations of Conjugate Gradient.
+  cg_damping: 1.0e-5         # Value of the damping in Conjugate Gradient.
+  ls_max_steps: 15           # Maximum number of steps in the line search.
+  ls_backtrack_ratio: 0.8    # Ratio to use for backtracking during the line search.

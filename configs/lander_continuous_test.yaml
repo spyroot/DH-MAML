@@ -1,0 +1,48 @@
+experiment_name: "turbulencelander"
+env_name: "turbulencelander-v0"
+
+env-args:
+  max_episode_steps: 100
+  continuous: True
+
+# if we need remap float32 to float64 etc.
+trajectory_sampler:
+  remap_types: True
+
+log_dir: "~/meta_critics/logs/lander_continuous"
+model_dir: "~/meta_critics/models/lander_continuous"
+create_dir: True
+
+
+trainer:
+  # Discount factor gamma.
+  type: distributed_rpc
+  save_freq: 20
+  meta_test_freq: 20
+  use_gae: True
+  gamma_factor: 0.99
+  gae_lambda_factor: 1.0  # Discount (GAE).
+  use_discount_gamma: True
+  resume: True
+  num-workers: 2
+
+# Policy network
+policy_network:
+  hidden_sizes: [64, 64]
+  activation: "tanh"
+
+meta_task:
+  num_batches: 500       # outer-loop updates
+  num_meta_task:  40     # number of task
+  num_trajectory: 20     # Number of trajectories to sample for each task.
+  num_steps: 1           # Number of gradient steps in the inner loop..
+  fast_lr: 0.1           # fast lr
+  first_order: false
+
+model:
+  name: trpo
+  model_type: AsyncMAMLTRPO
+  cg_iters: 10
+  ls_max_steps: 15
+  cg_damping: 1.0e-5
+  ls_backtrack_ratio: 0.8
