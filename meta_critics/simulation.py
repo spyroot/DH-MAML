@@ -136,7 +136,7 @@ class RemoteSimulation:
         :return:
         """
         remap_dtype = self.spec.get("remap_types", "trajectory_sampler")
-        episodes = AdvantageBatchEpisodes(batch_size=self.batch_size,
+        episodes = AdvantageBatchEpisodes(batch_size=self.num_traj,
                                           gamma=self.gamma,
                                           device=self._device,
                                           remap_dtype=remap_dtype)

@@ -29,7 +29,6 @@ class RpcObservers:
 
         self.device = self.spec.get('device')
 
-        self.num_task = None
         self.agent_policy = None
         self.linear_baseline = None
 
@@ -43,10 +42,10 @@ class RpcObservers:
         self.lock = threading.Lock()
         self.loop = asyncio.new_event_loop()
 
-        self.num_task = self.spec.get('meta-batch-size', 'meta_task')
+        self.num_task = self.spec.get('num_meta_task', 'meta_task')
         self.worker_rref = RRef(self)
         self.simulation = None
-
+        print("Obser num task ", self.num_task)
         # self_logger.emit("Rpc observer")
         # self.log(green_str("Starting rpc observer."))
 
@@ -69,7 +68,7 @@ class RpcObservers:
             # self.agent_policy, is_continuous = policy_creator()
             # self.agent_policy.share_memory()
             # self.linear_baseline = LinearFeatureBaseline(env, self.device).to(self.device)
-            self.num_task = self.spec.get('meta-batch-size', 'meta_task')
+            self.num_task = self.spec.get('num_meta_task', 'meta_task')
 
         except RunningSpecError as r_except:
             print(f"Error:", r_except)
@@ -204,6 +203,8 @@ class RpcObservers:
                     print(traceback.format_exc())
                     raise err
 
+            print("len of meta_task {}", len(meta_task))
+            assert len(meta_task) == self.num_task
             consumers = []
             for i in range(self.num_task):
                 consumer = loop.create_task(trajectory_consumer(train_queue))

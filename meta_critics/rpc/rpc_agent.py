@@ -74,7 +74,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         # self lock , block modification for a policy.
         self.self_lock = threading.Lock()
         self.num_task = self.spec.get('num_meta_task', 'meta_task')
-
+        print("Agent ", self.num_task)
         self.queue = None
 
         # agent policy seq
@@ -117,15 +117,13 @@ class DistributedAgent(GenericRpcAgent, ABC):
             self.agent_policy.update_parameters(parameters)
 
     def get_self_rref(self):
-        """
-
+        """ returns self rref
         :return:
         """
         return self.agent_rref
 
     def get_policy(self):
-        """
-
+        """returns current policy.
         :return:
         """
         return self.agent_policy

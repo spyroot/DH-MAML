@@ -75,7 +75,7 @@ def resole_primary_from_spec(spec: RunningSpec, create_if_needed: Optional[bool]
     :return:
     """
     if spec.contains("create_dir"):
-        create_if_needed  = spec.get("create_dir")
+        create_if_needed = spec.get("create_dir")
     return resole_primary_dir(spec.get("log_dir"),
                               create_if_needed=create_if_needed)
 
@@ -170,7 +170,6 @@ class DistributedMetaTrainer:
                 if 'last_step' in state_dict:
                     last_step = state_dict["last_step"]
                     state_dict.pop("last_step")
-                    self.spec.update('num_batches', 'meta_task')
                     print(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
                 else:
                     print(f"Detected existing model. Loading from {model_file_name}.")
@@ -331,21 +330,16 @@ class DistributedMetaTrainer:
                 await self.meta_test(episode_step)
 
         except KeyboardInterrupt as kb:
-
             if self.tf_writer is not None:
                 self.tf_writer.close()
-
             if self.agent is not None and self.last_episode > last_saved:
                 self.agent.save(last_saved)
-
             if last_trainer_queue is not None:
                 for consumer in last_trainer_queue:
                     consumer.cancel()
-
             if last_metric_queue is not None:
                 for consumer in last_metric_queue:
                     consumer.cancel()
-
             raise kb
 
     async def stop(self):
@@ -358,8 +352,8 @@ class DistributedMetaTrainer:
         if self.tf_writer is not None:
             self.tf_writer.close()
 
-        self.agent.save(self.last_episode)
-        self.started = False
+        # self.agent.save(self.last_episode)
+        # self.started = False
         self.loop.stop()
 
 

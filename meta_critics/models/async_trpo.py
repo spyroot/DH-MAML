@@ -117,6 +117,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         num_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
 
+        print(f"###### Num task {num_tasks}")
+        print(f"len data {len(data)}")
+
         old_losses = []
         inner_loss = []
         old_kl = []

@@ -330,7 +330,7 @@ class RunningSpec:
         in root section or subsection
         :param root: a root section of config.
         :param k:
-        :return: If spec contains a givne key.
+        :return: If spec contains a given key.
         """
         _config_section = self._running_config
         if root is not None:

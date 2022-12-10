@@ -7,11 +7,9 @@ from typing import Optional, List
 import gym
 import torch
 
-from meta_critics.policies.normal_mlp import NormalMLPPolicy
 from meta_critics.policies.categorical_mlp import CategoricalRLPPolicy
-
+from meta_critics.policies.normal_mlp import NormalMLPPolicy
 from meta_critics.running_spec import RunningSpec
-from util import create_env_from_name
 
 
 class PolicyCreator:
