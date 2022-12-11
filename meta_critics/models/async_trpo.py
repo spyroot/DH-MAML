@@ -117,7 +117,6 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
         logs = {}
         num_meta_tasks = len(train_futures[0])
-        print(num_meta_tasks)
         data = list(zip(zip(*train_futures), valid_futures))
 
         old_losses = torch.empty(len(data))

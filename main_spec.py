@@ -72,7 +72,6 @@ if __name__ == '__main__':
         s = running_spec.as_dict()
         print(s)
 
-
     except RunningSpecError as r_except:
         print(f"Error:", r_except)
         sys.exit(100)
