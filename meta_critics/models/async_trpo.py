@@ -138,8 +138,12 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         logs["old_kl"] = old_kl
 
         print(f"OLD loss device {old_losses.device}")
+        print(f"OLD old_kl device {old_kl.device}")
+
         for p in self.policy.parameters():
-            print(f"OLD loss device {p.device}")
+            print(f"param loss device {p.device}")
+        old_losses.to(self.device)
+        old_kl.to(self.device)
 
         try:
 
