@@ -8,6 +8,7 @@ __.pytest_cache__/
 .idea/*
 __pycache__
 __pycache__/*
+*.pyc
 *.xml
  .idea/.idea/DH-MAML.iml
  idea/inspectionProfiles/Project_Default.xml
