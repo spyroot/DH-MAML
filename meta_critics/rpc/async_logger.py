@@ -22,7 +22,7 @@ class AsyncLogger:
         self.logger = None
         self.__thread = threading.Thread(target=self.start_loop)
         self.__thread.daemon = True
-        self.__thread.start()
+        # self.__thread.start()
 
     async def emit_async(self, record):
         await AsyncLogger.self_queue.put(record)
