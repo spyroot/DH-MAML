@@ -3,6 +3,7 @@ __pycache__/
 __.pytest_cache__/
 *.py[cod]
 *$py.class
+.idea
 .idea/*
 *.xml
  .idea/.idea/DH-MAML.iml
@@ -11,7 +12,8 @@ __.pytest_cache__/
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
-
+wandb/*
+wandb
 # C extensions
 *.so
 *.pyc
