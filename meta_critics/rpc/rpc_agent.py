@@ -251,25 +251,21 @@ class DistributedAgent(GenericRpcAgent, ABC):
         # await logger.info("Received future from remote client.")
         while True:
             try:
-                metrics, tensor_board_metrics = await metric_queue.get()
-                if metrics is None:
+                algo_metrics, reward_metrics = await metric_queue.get()
+                if algo_metrics is None:
                     break
-
-                # this one need to move to generic callback
-                # if 'ls_step' in metrics:
-                #     self.ls_steps[i_episode] = metrics['ls_step']
 
                 metric_data = {}
 
                 tqdm_update_dict = {}
-                for k in metrics.keys():
-                    v = metrics[k]
+                for k in algo_metrics.keys():
+                    v = algo_metrics[k]
                     if isinstance(v, torch.Tensor):
                         tqdm_update_dict[k] = v.mean().item()
                         metric_data[k] = v.mean().item()
                         writer.add_scalar(f"loss/{k}", v.mean().item(), i_episode)
                     elif isinstance(v, ndarray):
-                        loss_term = metrics[k].mean()
+                        loss_term = algo_metrics[k].mean()
                         tqdm_update_dict[k] = loss_term
                         metric_data[k] = loss_term
                         writer.add_scalar(f"loss/{k}", loss_term, i_episode)
@@ -277,11 +273,12 @@ class DistributedAgent(GenericRpcAgent, ABC):
                         tqdm_update_dict[k] = v
                         writer.add_scalar(f"loss/{k}", v, i_episode)
                         metric_data[k] = v
-                    # wandb.log({k: v})
 
-                for k, v in tensor_board_metrics.items():
-                    writer.add_scalar(f"train_rewards/{k}", v.mean(), i_episode)
-                    metric_data[f"train_rewards/{k}"] = v.mean()
+                for k, v in reward_metrics.items():
+                    writer.add_scalar(f"rewards_mean/{k}", v.mean(), i_episode)
+                    metric_data[f"rewards_mean/{k}"] = v.mean()
+                    writer.add_scalar(f"rewards_sum/{k}", v.sum(), i_episode)
+                    metric_data[f"rewards_sum/{k}"] = v.sum()
 
                 # update metric listener
                 metric_receiver.update(metric_data)
@@ -365,13 +362,13 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     list_validation.append(v)
 
                 metrics = await _meta_learner.step([list_train], list_validation)
-                tensor_board_metrics = {
+                reward_metrics = {
                     "meta_train": torch.stack(train_rewards),
                     "meta_validation": torch.stack(validation_rewards)
                 }
 
                 # episode_queue.task_done()
-                await metric_queue.put((metrics, tensor_board_metrics))
+                await metric_queue.put((metrics, reward_metrics))
                 await self_agent.broadcast_grads()
 
             except ValueError as verr:
