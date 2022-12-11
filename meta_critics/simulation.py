@@ -1,3 +1,10 @@
+"""
+* Remote simulation run N meta-task based on request.
+* Collect rollout , selection of action based on current policy.
+* No gradient computed,  so its on policy take action and collect all trajectories for all task.
+*
+Mus
+"""
 import asyncio
 from typing import Tuple, List
 
@@ -20,18 +27,27 @@ class RemoteSimulation:
                  policy: Policy = None,
                  baseline=None,
                  debug=False):
+        """
 
+        :param observer_id:
+        :param spec:
+        :param policy:
+        :param baseline:
+        :param debug:
+        """
         super(RemoteSimulation, self).__init__()
-        # print("Creating simulation")
 
         self.spec = spec
         self.debug = debug
         self.policy = policy
+
+        # observer_id allocated to each observer by torch distribute
         self.observer_id = observer_id
 
         assert self.spec is not None
         assert self.policy is not None
 
+        # we build vectorized env for each env.
         self.env_name = self.spec.get('env_name')
         self.env_kwargs = {}
         if hasattr(self.spec, 'env_args'):
@@ -40,6 +56,7 @@ class RemoteSimulation:
         self._device = self.spec.get('device')
         self.num_traj = self.spec.get('num_trajectory', 'meta_task')
 
+        # seed adjusted based observer and number trajectory it must collect.
         self.seed = self.spec.get('seed')
         if self.seed is not None:
             self.seed = self.seed + observer_id + self.num_traj
@@ -66,7 +83,7 @@ class RemoteSimulation:
         pass
 
     async def start(self, queue, task_list, num_meta_tasks, debug=False):
-        """Starts asyncio coroutine
+        """Starts asyncio coroutine, that will monitor queue
         :param queue:  A queue method will use to serialize trajectories.
         :param task_list: a list of task.
         :param num_meta_tasks:
