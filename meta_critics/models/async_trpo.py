@@ -1,3 +1,4 @@
+import traceback
 from typing import Tuple
 
 import torch
@@ -185,6 +186,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
         except Exception as trpo_err:
             print("TRPO Error: ", trpo_err)
+            print(traceback.print_exc())
             raise trpo_err
 
         return logs
