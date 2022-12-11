@@ -1,3 +1,4 @@
+# Tuple used to communicate between for RPC.
 from collections import namedtuple
 
 NamedEpisode = namedtuple("NamedEpisode",

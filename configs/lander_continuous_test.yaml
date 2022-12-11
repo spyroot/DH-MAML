@@ -1,6 +1,10 @@
 experiment_name: "turbulencelander"
 env_name: "turbulencelander-v0"
 
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 env-args:
   max_episode_steps: 100
   continuous: True
@@ -15,6 +19,7 @@ create_dir: True
 
 
 trainer:
+  use_wandb: True
   # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20

@@ -2,6 +2,10 @@ env-name: "AntDir-v2"
 experiment_name: "antdir"
 env_name: "Ant-v4dir-v4"
 
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 env-args:
   max_episode_steps: 100
   continuous: True
@@ -11,7 +15,7 @@ model_dir: "~/meta_critics/models/antdir"
 create_dir: True
 
 trainer:
-  # Discount factor gamma.
+  use_wandb: True
   type: distributed_rpc
   save_freq: 20
   meta_test_freq: 20

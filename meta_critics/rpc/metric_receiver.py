@@ -16,10 +16,32 @@ class MetricReceiver:
         :param num_episodes:
         """
         # track ls step CG took.
+        if num_episodes == 0:
+            raise ValueError("Numbed of episode 0.")
+
+        if queue_size < 1:
+            raise ValueError("queue_size must be sufficiently large.")
+
+        if spec is None:
+            raise ValueError("queue_size must be sufficiently large.")
+
+        self.spec = spec
+        self.use_wandb = False
+
         self.ls_steps_metric = torch.empty(num_episodes)
         # execution for update.
         self.step = 0
-        wandb.init(project="dh-maml", entity="spyroot", config=spec.show())
+        if spec.contains("use_wandb", "trainer") and spec.get("use_wandb", "trainer"):
+            project = "dh-maml"
+            entity = "spyroot"
+            if spec.contains("entity", "wandb"):
+                entity = spec.get("entity", "wandb")
+
+            if spec.contains("project", "wandb"):
+                project = spec.get("project", "entity")
+
+            self.use_wandb = True
+            wandb.init(project=project, entity=entity, config=self.spec.show())
 
         # buffer called from trainer,   cv used to notify data arrived.
         self.buffer = Queue(maxsize=queue_size)
@@ -153,7 +175,8 @@ class MetricReceiver:
                     data['ls_step'] = self.ls_steps_metric.mean()
 
                 self.step += 1
-                wandb.log(data)
+                if self.use_wandb:
+                    wandb.log(data)
 
             except Empty as _:
                 with self.self_cv:

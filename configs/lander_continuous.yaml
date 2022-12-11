@@ -5,11 +5,16 @@ env-args:
   max_episode_steps: 100
   continuous: True
 
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 log_dir: "~/meta_critics/logs/lander_continuous"
 model_dir: "~/meta_critics/models/lander_continuous"
 create_dir: True
 
 trainer:
+  use_wandb: True
   # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20

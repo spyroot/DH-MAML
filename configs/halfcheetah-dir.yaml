@@ -10,7 +10,7 @@ create_dir: True
 
 
 trainer:
-  # Discount factor gamma.
+  use_wandb: True
   type: distributed_rpc
   save_freq: 20
   meta_test_freq: 20

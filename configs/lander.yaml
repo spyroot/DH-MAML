@@ -4,6 +4,9 @@ env_name: "turbulencelander-v0"
 env-args:
   max_episode_steps: 100
 
+wandb:
+  entity: spyroot
+  project: dh-maml
 
 log_dir: "~/meta_critics/logs/lander_discrete"
 model_dir: "~/meta_critics/models/lander_discrete"
@@ -11,6 +14,7 @@ create_dir: True
 
 
 trainer:
+  use_wandb: True
   # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20

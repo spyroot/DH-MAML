@@ -305,7 +305,7 @@ class DistributedMetaTrainer:
         assert self.agent is not None
 
         num_batches = self.spec.get('num_batches', 'meta_task')
-        metric_receiver = MetricReceiver(num_batches)
+        metric_receiver = MetricReceiver(num_batches, spec=self.spec)
 
         try:
             trainer_queue = asyncio.Queue()

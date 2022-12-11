@@ -1,6 +1,10 @@
 experiment_name: "antvel"
 env_name: "Ant-v4vel-v4"
 
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 env-args:
   low: 0.0
   high: 3.0
@@ -12,7 +16,7 @@ model_dir: "~/meta_critics/models/antvel"
 create_dir: True
 
 trainer:
-  # Discount factor gamma.
+  use_wandb: True
   type: distributed_rpc
   save_freq: 20
   meta_test_freq: 20

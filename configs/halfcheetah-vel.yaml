@@ -11,6 +11,7 @@ model_dir: "~/meta_critics/models/halfcheetahvel"
 create_dir: True
 
 trainer:
+  use_wandb: True
   # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20

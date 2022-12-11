@@ -8,13 +8,16 @@ env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+wandb:
+  entity: spyroot
+  project: dh-maml
 
 log_dir: "~/meta_critics/logs/antgoal"
 model_dir: "~/meta_critics/models/antgoal"
 create_dir: True
 
 trainer:
-  # Discount factor gamma.
+  use_wandb: True
   type: distributed_rpc
   save_freq: 20
   meta_test_freq: 20

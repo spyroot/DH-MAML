@@ -1,6 +1,10 @@
 experiment_name: "navigation"
 env_name: "navigation-v0"
 
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 log_dir: "~/meta_critics/logs"
 model_dir: "~/meta_critics/models/navigation"
 create_dir: True
@@ -13,6 +17,7 @@ trajectory_sampler:
   remap_types: True
 
 trainer:
+  use_wandb: True
   type: distributed_rpc
   use_discount_gamma: True
   gae_lambda_factor: 1.0
