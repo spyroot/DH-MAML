@@ -1,3 +1,5 @@
+# this mainly to test bandit and check results.
+# I added UCB / Epsilon Greedy Agents.
 import argparse
 import json
 import multiprocessing as mp

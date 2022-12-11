@@ -1,3 +1,5 @@
+# old main
+# meta_critics
 import argparse
 import os
 import sys
