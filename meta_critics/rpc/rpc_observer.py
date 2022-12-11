@@ -45,7 +45,6 @@ class RpcObservers:
         self.num_task = self.spec.get('num_meta_task', 'meta_task')
         self.worker_rref = RRef(self)
         self.simulation = None
-        print("Obser num task ", self.num_task)
         # self_logger.emit("Rpc observer")
         # self.log(green_str("Starting rpc observer."))
 
@@ -203,7 +202,6 @@ class RpcObservers:
                     print(traceback.format_exc())
                     raise err
 
-            print("len of meta_task {}", len(meta_task))
             assert len(meta_task) == self.num_task
             consumers = []
             for i in range(self.num_task):

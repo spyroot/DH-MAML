@@ -151,7 +151,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             old_params = parameters_to_vector(self.policy.parameters())
             step_size = 1.0
 
-            self.max_kl = torch.tensor(self.max_kl)
+            self._max_kl = torch.tensor(self.max_kl)
             logs['ls_step'] = 0
             for _ in range(self.ls_max_steps):
                 vec2parameters(old_params - step_size * step, self.policy.parameters())
@@ -171,7 +171,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
                 logs['ls_step'] += 1
                 logs['improved'] = new_improved_loss
-                if (new_improved_loss.item() < 0.0) and (new_kl < self.max_kl):
+                if (new_improved_loss.item() < 0.0) and (new_kl < self._max_kl):
                     logs['inner_post'] = new_inner_loss
                     logs['loss_post'] = new_improved_loss
                     logs['kl_post'] = new_kl

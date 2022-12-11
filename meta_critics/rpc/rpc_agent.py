@@ -21,6 +21,7 @@ from tqdm import tqdm
 from meta_critics.policies.policy import Policy
 from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.generic_rpc_agent import GenericRpcAgent
+from meta_critics.rpc.metric_receiver import MetricReceiver
 from meta_critics.rpc.rpc_observer import RpcObservers
 from meta_critics.rpc.shared_vars import OBSERVER_NAME
 from meta_critics.running_spec import RunningSpec
@@ -75,7 +76,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
         # self lock , block modification for a policy.
         self.self_lock = threading.Lock()
         self.num_task = self.spec.get('num_meta_task', 'meta_task')
-        print("Agent ", self.num_task)
         self.queue = None
 
         # agent policy seq
@@ -95,7 +95,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         # self.loop.call_soon(functools.partial(self.self_logger.emit, msg))
 
     def rpc_sync_grad(self, worker_id, parameters):
-        """ This rpc all called by the observer.
+        """ This rpc all called by the observer
         :param worker_id:
         :param parameters:
         :return:
@@ -107,12 +107,10 @@ class DistributedAgent(GenericRpcAgent, ABC):
 
     def sync_policy(self, worker_id, parameters):
         """
-
         :param worker_id:
         :param parameters:
         :return:
         """
-        print("Agent sync policy")
         with self.self_lock:
             self.update_seq += 1
             self.agent_policy.update_parameters(parameters)
@@ -133,7 +131,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """
         :return:
         """
-        print("Agent get policy ref")
         param_rrefs = [rpc.RRef(param) for param
                        in self.agent_policy.parameter]
         return param_rrefs
@@ -146,7 +143,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """Broadcasts to all agent policy
         :return:
         """
-        print("Agent broadcast policy")
         # await logger.debug(f"agent {self.agent_rref} broadcast policy.")
         with self.self_lock:
             p = OrderedDict(self.agent_policy.cpu().named_parameters())
@@ -232,11 +228,13 @@ class DistributedAgent(GenericRpcAgent, ABC):
     @staticmethod
     async def metric_dequeue(metric_queue: asyncio.Queue,
                              writer: SummaryWriter,
+                             metric_receiver: MetricReceiver,
                              i_episode: int,
                              tqdm_iter: tqdm,
                              callback=None,
                              flush_io: Optional[bool] = False):
         """
+        :param metric_receiver:
         :param flush_io:
         :param callback:
         :param tqdm_iter:
@@ -245,10 +243,10 @@ class DistributedAgent(GenericRpcAgent, ABC):
         :param metric_queue:
         :return:
         """
-        # for a sake of time metric aveage for LS compute here.
+        # for a sake of time metric average for LS compute here.
         # TODO I have internal state metric counter to make it more generic
         # this call should call generic callback and serialize metric without hardcodings
-        # any spepecific.  for now we want to track average LS step TRPO took to push KL term
+        # any specific.  for now we want to track average LS step TRPO took to push KL term
         # it useful to track for each task.
         # await logger.info("Received future from remote client.")
         while True:
@@ -258,34 +256,46 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     break
 
                 # this one need to move to generic callback
-                if 'ls_step' in metrics:
-                    self.ls_steps[i_episode] = metrics['ls_step']
+                # if 'ls_step' in metrics:
+                #     self.ls_steps[i_episode] = metrics['ls_step']
+
+                metric_data = {}
 
                 tqdm_update_dict = {}
                 for k in metrics.keys():
                     v = metrics[k]
                     if isinstance(v, torch.Tensor):
                         tqdm_update_dict[k] = v.mean().item()
+                        metric_data[k] = v.mean().item()
                         writer.add_scalar(f"loss/{k}", v.mean().item(), i_episode)
                     elif isinstance(v, ndarray):
                         loss_term = metrics[k].mean()
                         tqdm_update_dict[k] = loss_term
+                        metric_data[k] = loss_term
                         writer.add_scalar(f"loss/{k}", loss_term, i_episode)
                     else:
                         tqdm_update_dict[k] = v
                         writer.add_scalar(f"loss/{k}", v, i_episode)
+                        metric_data[k] = v
                     # wandb.log({k: v})
 
                 for k, v in tensor_board_metrics.items():
                     writer.add_scalar(f"train_rewards/{k}", v.mean(), i_episode)
+                    metric_data[f"train_rewards/{k}"] = v.mean()
+
+                # update metric listener
+                metric_receiver.update(metric_data)
 
                 # update tbar
                 tqdm_iter.set_postfix(tqdm_update_dict)
+
             except Exception as exp:
                 print("Error in metric dequeue", exp)
                 print(traceback.print_exc())
             finally:
-                metric_queue.task_done()
+                if not metric_queue.empty():
+                    metric_queue.task_done()
+
                 if flush_io:
                     writer.flush()
 
@@ -352,7 +362,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     list_train.append(t)
                     list_validation.append(v)
 
-                print("calling step")
                 metrics = await _meta_learner.step([list_train], list_validation)
                 tensor_board_metrics = {
                     "meta_train": torch.stack(train_rewards),
@@ -402,4 +411,3 @@ class DistributedAgent(GenericRpcAgent, ABC):
             print("Error failed to save model:", err)
 
         return False
-

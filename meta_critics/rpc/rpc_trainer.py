@@ -16,6 +16,7 @@ from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
 from meta_critics.models.async_trpo import ConcurrentMamlTRPO
 from meta_critics.rpc.async_logger import AsyncLogger
+from meta_critics.rpc.metric_receiver import MetricReceiver
 from meta_critics.rpc.rpc_agent import DistributedAgent
 from meta_critics.running_spec import RunningSpec
 from meta_critics.simulation import RemoteSimulation
@@ -272,6 +273,9 @@ class DistributedMetaTrainer:
         assert self.meta_learner is not None
         assert self.agent is not None
 
+        num_batches = self.spec.get('num_batches', 'meta_task')
+        metric_receiver = MetricReceiver(num_batches)
+
         try:
             trainer_queue = asyncio.Queue()
             metric_queue = asyncio.Queue()
@@ -287,7 +291,6 @@ class DistributedMetaTrainer:
             await agent.broadcast_policy()
 
             from tqdm.asyncio import trange, tqdm
-            num_batches = self.spec.get('num_batches', 'meta_task')
             tqdm_iter = tqdm(range(1, num_batches),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
 
@@ -301,7 +304,7 @@ class DistributedMetaTrainer:
                                                                                      self.meta_learner,
                                                                                      device=self.spec.get('device')))
                     metric_collector_task = \
-                        asyncio.create_task(agent.metric_dequeue(metric_queue, self.tf_writer,
+                        asyncio.create_task(agent.metric_dequeue(metric_queue, self.tf_writer, metric_receiver,
                                                                  episode_step, tqdm_iter))
                     trainer_episode_consumers.append(train_data_consumer)
                     trainer_metric_consumers.append(metric_collector_task)
@@ -330,17 +333,27 @@ class DistributedMetaTrainer:
                 await self.meta_test(episode_step)
 
         except KeyboardInterrupt as kb:
+
+            # shutdown metric listener
+            metric_receiver.shutdown()
+            del metric_receiver
+
             if self.tf_writer is not None:
                 self.tf_writer.close()
             if self.agent is not None and self.last_episode > last_saved:
                 self.agent.save(last_saved)
             if last_trainer_queue is not None:
                 for consumer in last_trainer_queue:
-                    consumer.cancel()
+                    if not consumer.cancelled():
+                        consumer.cancel()
             if last_metric_queue is not None:
                 for consumer in last_metric_queue:
-                    consumer.cancel()
+                    if not consumer.cancelled():
+                        consumer.cancel()
             raise kb
+
+        metric_receiver.shutdown()
+        del metric_receiver
 
     async def stop(self):
         """
