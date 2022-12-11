@@ -366,7 +366,7 @@ class DistributedMetaTrainer:
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
-                # await self.meta_test(metric_receiver, episode_step)
+                await self.meta_test(metric_receiver, episode_step)
 
         except KeyboardInterrupt as kb:
 
