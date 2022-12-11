@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/HalfCheetahVel" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_213309-208ja3ll" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_213319-1p1he8wh" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_213319-1t23y6n4" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_230116-23o96pr3" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_231045-2t21wswh" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_231922-10kjnyy7" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_232600-3jcn4kv6" />
+      <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_233627-140zdj5d" />
+    </content>
     <orderEntry type="jdk" jdkName="dtc (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
