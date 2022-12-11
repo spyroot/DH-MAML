@@ -212,7 +212,7 @@ class DistributedMetaTrainer:
         # new policy
         policy_creator = PolicyCreator(env, self.spec)
         agent_policy, _ = policy_creator()
-        # agent_policy.to(device)
+        agent_policy.to(device)
         linear_baseline = LinearFeatureBaseline(env, device).to(device)
         simulation = RemoteSimulation(20, spec=self.spec,
                                       policy=agent_policy,
@@ -366,7 +366,7 @@ class DistributedMetaTrainer:
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
-                await self.meta_test(metric_receiver, episode_step)
+                # await self.meta_test(metric_receiver, episode_step)
 
         except KeyboardInterrupt as kb:
 

@@ -31,8 +31,6 @@ from meta_critics.models.async_trpo import ConcurrentMamlTRPO
 from meta_critics.base_trainer.internal.utils import to_numpy
 
 
-# import wandb
-# wandb.init(project="dh-maml", entity="spyroot")
 # from aiologger import Logger
 # logger = Logger.with_default_handlers()
 
