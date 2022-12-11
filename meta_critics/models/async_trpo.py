@@ -104,9 +104,6 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             losses = -weighted_mean(ratio * valid_episodes.advantages, lengths=valid_episodes.lengths)
             kls = weighted_mean(kl_divergence(new_policy, detached_policy), lengths=valid_episodes.lengths)
 
-        print("sur", losses.device)
-        print("kl", kls.device)
-
         return losses.mean(), kls.mean(), detached_policy, inner_losses
 
     async def step(self, train_futures, valid_futures, debug=True):
@@ -147,9 +144,6 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
         for p in self.policy.parameters():
             print(f"param loss device {p.device}")
-        old_losses.to(self.device)
-        old_kl.to(self.device)
-
 
         try:
 
