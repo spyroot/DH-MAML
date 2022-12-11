@@ -254,17 +254,17 @@ class DistributedMetaTrainer:
                     rewards_mean += episode.rewards.mean().cpu().item()
                     total_task += 1
 
-                tqdm_update_dict["reward mean"] = rewards_mean
-                tqdm_update_dict["reward sum"] = rewards_sum
-                tqdm_update_dict["reward std"] = rewards_std
+                tqdm_update_dict["reward mean"] = rewards_mean / total_task
+                tqdm_update_dict["reward sum"] = rewards_sum / total_task
+                tqdm_update_dict["reward std"] = rewards_std / total_task
 
                 metric_data = {
                     'reward mean': rewards_mean,
                     'reward sum': rewards_sum,
                     'reward std': rewards_std,
-                    'reward mean task': rewards_mean / total_task,
-                    'reward sum task': rewards_sum / total_task,
-                    'reward std task': rewards_std / total_task,
+                    'task reward mean': rewards_mean / total_task,
+                    'task reward sum': rewards_sum / total_task,
+                    'task std task': rewards_std / total_task,
                     'step': step,
                 }
 
@@ -272,9 +272,9 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"train_meta_test/sum", rewards_std, step)
                 self.tf_writer.add_scalar(f"train_meta_test/std", rewards_mean, step)
 
-                self.tf_writer.add_scalar(f"train_meta_test/mean_task", rewards_sum / total_task, step)
-                self.tf_writer.add_scalar(f"train_meta_test/sum_task", rewards_std / total_task, step)
-                self.tf_writer.add_scalar(f"train_meta_test/std_task", rewards_mean / total_task, step)
+                self.tf_writer.add_scalar(f"task_train_meta_test/mean_task", rewards_sum / total_task, step)
+                self.tf_writer.add_scalar(f"task_train_meta_test/sum_task", rewards_std / total_task, step)
+                self.tf_writer.add_scalar(f"task_train_meta_test/std_task", rewards_mean / total_task, step)
 
                 metric_receiver.update(metric_data)
 
