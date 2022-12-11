@@ -13,9 +13,9 @@ we first perform the adaption phase for an existing policy after the algorithm u
 new KL terms for the current policy. Finally, the principal agent receives all updates from all the agents. 
 
 ## Architecture
-![img_1.png](img_1.png)
+![img_1.png](imgs/img_1.png)
 
-![img_2.png](img_2.png)
+![img_2.png](imgs/img_2.png)
 
 ## Instruction.
 
