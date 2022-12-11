@@ -499,13 +499,13 @@ def run_worker(rank: int, world_size: int, spec: RunningSpec):
         # for sig in (signal.SIGINT, signal.SIGTERM):
         #     loop.add_signal_handler(sig, ask_exit)
         loop.run_until_complete(rpc_async_worker(rank, world_size, spec))
-    except SystemExit:
-        print("caught SystemExit!")
+    except SystemExit as sys_exit:
+        print("SystemExit")
         ask_exit()
-        # task.exception()
-        raise
+        raise sys_exit
     except Exception as loop_err:
         print(loop_err)
+        raise
     finally:
         if loop is not None and loop.is_running():
             loop.run_until_complete(loop.shutdown_asyncgens())
