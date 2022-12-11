@@ -245,13 +245,21 @@ class DistributedAgent(GenericRpcAgent, ABC):
         :param metric_queue:
         :return:
         """
-
+        # for a sake of time metric aveage for LS compute here.
+        # TODO I have internal state metric counter to make it more generic
+        # this call should call generic callback and serialize metric without hardcodings
+        # any spepecific.  for now we want to track average LS step TRPO took to push KL term
+        # it useful to track for each task.
         # await logger.info("Received future from remote client.")
         while True:
             try:
                 metrics, tensor_board_metrics = await metric_queue.get()
                 if metrics is None:
                     break
+
+                # this one need to move to generic callback
+                if 'ls_step' in metrics:
+                    self.ls_steps[i_episode] = metrics['ls_step']
 
                 tqdm_update_dict = {}
                 for k in metrics.keys():

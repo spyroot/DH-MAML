@@ -28,8 +28,7 @@ class AverageMeter:
         self.avg = 0
 
     def update(self, val):
-        """
-        Each update, update last value and recompute average.
+        """Each update, update last value and recompute average.
         :param val:
         :return:
         """

@@ -152,6 +152,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             step_size = 1.0
 
             self.max_kl = torch.tensor(self.max_kl)
+            logs['ls_step'] = 0
             for _ in range(self.ls_max_steps):
                 vec2parameters(old_params - step_size * step, self.policy.parameters())
 
@@ -168,18 +169,14 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                 new_inner_loss = (_new_inner_loss.sum() / num_meta_tasks) - inner_loss
                 new_kl = _new_kl.sum() / num_meta_tasks
 
+                logs['ls_step'] += 1
                 logs['improved'] = new_improved_loss
                 if (new_improved_loss.item() < 0.0) and (new_kl < self.max_kl):
-                    print("### Best loss ", new_improved_loss)
-                    print("kl_post", new_kl)
                     logs['inner_post'] = new_inner_loss
                     logs['loss_post'] = new_improved_loss
                     logs['kl_post'] = new_kl
                     break
-                else:
-                    print("############# current improved "
-                          "loss {:.4} kl {:.4} max {:.4}".format(new_improved_loss.item(),
-                                                                 new_kl.item(), self.max_kl.item()))
+
                 step_size *= self.ls_backtrack_ratio
                 self.ls_counter += 1
                 logs['ls_counter'] = self.ls_counter
