@@ -207,13 +207,14 @@ class DistributedMetaTrainer:
         device = self.spec.get("device")
         env = create_env_from_spec(self.spec)
 
+        print(device)
+
         # new policy
         policy_creator = PolicyCreator(env, self.spec)
         agent_policy, _ = policy_creator()
-        agent_policy.to(self.spec.get('device'))
+        # agent_policy.to(device)
         linear_baseline = LinearFeatureBaseline(env, device).to(device)
-        linear_baseline.to(self.spec.get('device'))
-        simulation = RemoteSimulation(1, spec=self.spec,
+        simulation = RemoteSimulation(20, spec=self.spec,
                                       policy=agent_policy,
                                       baseline=linear_baseline)
 
