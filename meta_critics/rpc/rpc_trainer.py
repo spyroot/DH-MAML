@@ -177,20 +177,22 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, step, flash_io=False) -> None:
+    async def meta_test(self, metric_receiver: MetricReceiver, step: int, flash_io=False) -> None:
         """
-        Perform a meta-test.  Load new policy from saved model and test on a new environment.
-        frequency when to meta test dictated by meta_test_freq configuration in spec.
-        Note this value must large then save model frequency.
+        Perform a meta-test.  It loads new policy from saved model and test on a new environment.
+        Each environment created from own seed. So agent seen environment.
+
+        A frequency when to meta test dictated by meta_test_freq configuration in spec.
+        Note this value must be larger than save model frequency.
+
+        During meta test trainer load a policy it saved and uses new policy to perform
+        a meta test.
 
         :return: Nothing
         """
         test_freq = self.spec.get('meta_test_freq', 'trainer')
 
-        if step == 0:
-            return
-
-        if step % test_freq != 0:
+        if step == 0 or (step % test_freq != 0):
             return
 
         if self.tf_writer is None:
@@ -204,6 +206,7 @@ class DistributedMetaTrainer:
         device = self.spec.get("device")
         env = create_env_from_spec(self.spec)
 
+        # new policy
         policy_creator = PolicyCreator(env, self.spec)
         agent_policy, _ = policy_creator()
         linear_baseline = LinearFeatureBaseline(env, device).to(device)
@@ -212,6 +215,7 @@ class DistributedMetaTrainer:
                                       policy=agent_policy,
                                       baseline=linear_baseline)
 
+        # load policy , note we perform meta test also on target device.
         model_file_name = self.spec.get('model_state_file', 'model_files')
         with open(model_file_name, 'rb') as f:
             print(f"Loading model from {model_file_name}")
@@ -235,19 +239,34 @@ class DistributedMetaTrainer:
                 tasks = await self.agent.sample_tasks()
                 _, meta_tasks = await simulation.meta_tests(tasks)
 
-                for meta_task_i, episode in enumerate(meta_tasks):
-                    rewards_sum = episode.rewards.sum().cpu().item()
-                    rewards_mean = episode.rewards.mean().cpu().item()
-                    rewards_std = episode.rewards.std().cpu().item()
-                    # await logger.info(episode.rewards.cpu())
-                    tqdm_update_dict["reward mean"] = rewards_mean
-                    tqdm_update_dict["reward sum"] = rewards_sum
-                    tqdm_update_dict["reward std"] = rewards_std
-                    tqdm_update_dict["task"] = tasks[meta_task_i]
+                rewards_sum = 0
+                rewards_std = 0
+                rewards_mean = 0
 
-                    self.tf_writer.add_scalar(f"meta_test/mean", rewards_mean, step)
-                    self.tf_writer.add_scalar(f"meta_test/sum", rewards_sum, step)
-                    self.tf_writer.add_scalar(f"meta_test/std", rewards_std, step)
+                for meta_task_i, episode in enumerate(meta_tasks):
+                    # trajectory for a task a mean reward,
+                    # std per task, sum reward per task
+                    rewards_sum += episode.rewards.sum().cpu().item()
+                    rewards_std += episode.rewards.std().cpu().item()
+                    rewards_mean += episode.rewards.mean().cpu().item()
+
+                tqdm_update_dict["reward mean"] = rewards_mean
+                tqdm_update_dict["reward sum"] = rewards_sum
+                tqdm_update_dict["reward std"] = rewards_std
+
+                metric_data = {
+                    'reward mean': rewards_mean,
+                    'reward sum': rewards_sum,
+                    'reward std': rewards_std,
+                    'step': step,
+                }
+
+                self.tf_writer.add_scalar(f"train_meta_test/mean", rewards_sum, step)
+                self.tf_writer.add_scalar(f"train_meta_test/sum", rewards_std, step)
+                self.tf_writer.add_scalar(f"train_meta_test/std", rewards_mean, step)
+
+                metric_receiver.update(metric_data)
+
                 tqdm_iter.set_postfix(tqdm_update_dict)
         except Exception as err:
             print("Error during meta-test", err)
@@ -261,9 +280,12 @@ class DistributedMetaTrainer:
         Then meta train ask agent to distribute tasks to all observers.
         :return:
         """
+
         last_saved = 0
         last_trainer_queue = None
         last_metric_queue = None
+        trainer_metric_consumers = None
+        trainer_episode_consumers = None
 
         if self.started is False:
             raise ValueError("calling meta_train before trainer started.")
@@ -298,20 +320,24 @@ class DistributedMetaTrainer:
                 trainer_metric_consumers = []
                 trainer_episode_consumers = []
                 for _ in range(self.world_size - 1):
+                    # a task set to each consumer to pass data to algo when observer return data
                     train_data_consumer = asyncio.create_task(agent.trainer_consumer(agent,
                                                                                      trainer_queue,
                                                                                      metric_queue,
                                                                                      self.meta_learner,
                                                                                      device=self.spec.get('device')))
-                    metric_collector_task = \
-                        asyncio.create_task(agent.metric_dequeue(metric_queue, self.tf_writer, metric_receiver,
-                                                                 episode_step, tqdm_iter))
+
+                    # a task set to each consumer to pass data after algo performed computation.
+                    metric_collector_task = asyncio.create_task(agent.metric_dequeue(metric_queue,
+                                                                                     self.tf_writer,
+                                                                                     metric_receiver,
+                                                                                     episode_step, tqdm_iter))
                     trainer_episode_consumers.append(train_data_consumer)
                     trainer_metric_consumers.append(metric_collector_task)
 
                 await agent.distribute_tasks(trainer_queue, n_steps=NUM_STEPS)
 
-                # two queue one for episode and second for metric
+                # two queue one for episode step and second for metric
                 await trainer_queue.join()
                 await metric_queue.join()
 
@@ -323,14 +349,13 @@ class DistributedMetaTrainer:
                 await asyncio.gather(*trainer_episode_consumers, return_exceptions=True)
                 await asyncio.gather(*trainer_metric_consumers, return_exceptions=True)
 
-                # result = await self.loop.run_in_executor(
-                #         None, blocking_io)
-
                 if agent.save(episode_step):
                     last_saved = episode_step
                 self.last_episode = episode_step
 
-                await self.meta_test(episode_step)
+                # we perform meta test based on spec to track rewards.
+                # this not a final meta test.
+                await self.meta_test(metric_receiver, episode_step)
 
         except KeyboardInterrupt as kb:
 
@@ -338,22 +363,26 @@ class DistributedMetaTrainer:
             metric_receiver.shutdown()
             del metric_receiver
 
+            # close io
             if self.tf_writer is not None:
                 self.tf_writer.close()
+
             if self.agent is not None and self.last_episode > last_saved:
                 self.agent.save(last_saved)
+
             if last_trainer_queue is not None:
-                for consumer in last_trainer_queue:
+                for consumer in trainer_episode_consumers:
                     if not consumer.cancelled():
                         consumer.cancel()
             if last_metric_queue is not None:
-                for consumer in last_metric_queue:
+                for consumer in trainer_metric_consumers:
                     if not consumer.cancelled():
                         consumer.cancel()
             raise kb
 
-        metric_receiver.shutdown()
-        del metric_receiver
+        if metric_receiver is not None:
+            metric_receiver.shutdown()
+            del metric_receiver
 
     async def stop(self):
         """
@@ -371,8 +400,10 @@ class DistributedMetaTrainer:
 
 
 async def worker(rank: Optional[int] = -1, world_size: Optional[int] = -1, self_logger=None):
-    """
-
+    """ Still trying to figure out how to do it with RPC, asyncio logger.
+    This is another process so one way and probably right way.  Use asyncio file and write logs.
+    in distribute ways.
+    TODO
     :param self_logger:
     :param rank:
     :param world_size:
@@ -432,21 +463,25 @@ async def rpc_async_worker(rank, world_size, spec: RunningSpec):
         print(traceback.print_exc())
 
 
-def run_worker(rank, world_size, spec: RunningSpec):
+def run_worker(rank: int, world_size: int, spec: RunningSpec):
     """
-
+    Main entry called by main routine.
     :param rank:
     :param world_size:
     :param spec:
     :return:
     """
+    if spec is None:
+        print_red("Running spec is empty")
+        return
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(rpc_async_worker(rank, world_size, spec))
-        # loop.close()
     except Exception as loop_err:
         print(loop_err)
     finally:
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
+        if loop is not None and loop.is_running():
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()

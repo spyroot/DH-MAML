@@ -7,7 +7,7 @@ import traceback
 from abc import ABC
 from collections import OrderedDict
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 import gym
 import numpy as np
@@ -151,7 +151,11 @@ class DistributedAgent(GenericRpcAgent, ABC):
 
     async def shutdown_observers(self):
         """Broadcasts to all observers to shut down.
-        If agent can't recover from error.
+        If agent can't recover from error, torch rpc doesn't handle many issues.
+        So it on keyboard event it better to send shutdown, otherwise RPC socket will
+        remain open.
+
+        Generally, if torch provide good wait to signal via UNIX signal SIG TERM etc.
         :return:
         """
         print("Agent send shutdown to observer")
@@ -160,10 +164,9 @@ class DistributedAgent(GenericRpcAgent, ABC):
             f.wait()
 
     async def broadcast_grads(self):
-        """Broadcasts to all agent policy
+        """Broadcasts to all agent policy,  Agent distribute policy to each observer.
         :return:
         """
-
         # we need detach to cpu
         # await logger.debug(f"agent {self.agent_rref} broadcasting grads")
         def updated():
@@ -186,9 +189,13 @@ class DistributedAgent(GenericRpcAgent, ABC):
             f = ob_rref.rpc_sync().update_agent_rref(self.agent_rref, self.agent_rref)
 
     async def distribute_tasks(self, queue, n_steps=0):
-        """Distribute task to each observer.
-        :param queue:
-        :param n_steps:
+        """Distribute task to each observer. Method doesn't wait.
+        It distributes tasks via async RPC and put future to a queue.
+        There is separate consumer wait on this event. Note RPC
+        doesn't wait
+        :param queue: a queue where RPC call will put a torch.Future
+        :param n_steps: number of step observer need execute policy gradient.
+               By default, it just 1.
         :return:
         """
         self.queue = queue
@@ -226,21 +233,22 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     writer.add_scalar(f"loss/{k}", v.item(), episode_num)
 
     @staticmethod
-    async def metric_dequeue(metric_queue: asyncio.Queue,
+    async def metric_dequeue(trainer_metric_queue: asyncio.Queue,
                              writer: SummaryWriter,
                              metric_receiver: MetricReceiver,
                              i_episode: int,
                              tqdm_iter: tqdm,
-                             callback=None,
+                             callback: Optional[Callable] = None,
                              flush_io: Optional[bool] = False):
         """
+        :param callback:  a callback that we want execute. (TODO)
+        :param tqdm_iter: tqdm iterator dict note we using asyncio version.
+        :param i_episode:  current episode number
+        :param writer:  tensorboard writer.  todo move that to metric writer to avoid IO cost.
+        :param trainer_metric_queue: a queue metrics pushed from a trainer at each step
         :param metric_receiver:
-        :param flush_io:
-        :param callback:
-        :param tqdm_iter:
-        :param i_episode:
-        :param writer:
-        :param metric_queue:
+        :param flush_io:  torch does something with IO pipes during fork().
+                         Generally avoid write big chunk to IO.
         :return:
         """
         # for a sake of time metric average for LS compute here.
@@ -251,7 +259,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         # await logger.info("Received future from remote client.")
         while True:
             try:
-                algo_metrics, reward_metrics = await metric_queue.get()
+                algo_metrics, reward_metrics = await trainer_metric_queue.get()
                 if algo_metrics is None:
                     break
 
@@ -286,14 +294,14 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 # update tbar
                 tqdm_iter.set_postfix(tqdm_update_dict)
 
-                metric_queue.task_done()
+                trainer_metric_queue.task_done()
 
             except Exception as exp:
                 print("Error in metric dequeue:", exp)
                 print(traceback.print_exc())
             finally:
-                if not metric_queue.empty():
-                    metric_queue.task_done()
+                if not trainer_metric_queue.empty():
+                    trainer_metric_queue.task_done()
 
                 if flush_io:
                     writer.flush()
