@@ -81,13 +81,17 @@ class MetricReceiver:
                 self.self_main_cv.notify()
             return
 
-        self.main_buffer.put_nowait(data)
+        # self.main_buffer.put_nowait(data)
 
         with self.self_main_cv:
-            # self.main_buffer.put_nowait(data)
-            self.self_main_cv.notify()
-
-        print("Return")
+            try:
+                self.main_buffer.put_nowait(data)
+                self.self_main_cv.notify()
+            except Exception as err:
+                print("error")
+            finally:
+                print("Return")
+                self.self_main_cv.notify()
 
     def producer(self):
         """Receive a data from upstream thread, many threads can push.
@@ -108,6 +112,8 @@ class MetricReceiver:
                     self.self_main_cv.notify_all()
                     self.self_main_cv.wait()
                     pass
+                finally:
+                    self.self_main_cv.notify_all()
 
             if data is not None:
                 with self.self_cv:
@@ -150,3 +156,5 @@ class MetricReceiver:
                     self.self_cv.wait()
 
         print("Shutdown event.")
+
+
