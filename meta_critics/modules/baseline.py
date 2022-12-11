@@ -40,7 +40,7 @@ class LinearFeatureBaseline(nn.Module):
         :param episodes:
         :return:
         """
-        ones = episodes.mask.unsqueeze(2).to(self.device)
+        ones = episodes.mask.unsqueeze(2).to(self._device)
         observations = episodes.observations
         lens = torch.arange(torch.max(episodes.lengths).item(), device=self._device)
         time_step = lens.view(-1, 1, 1) * ones / 100.0
@@ -54,7 +54,7 @@ class LinearFeatureBaseline(nn.Module):
             ones
         ], dim=2)
 
-        t.to(self.device)
+        t.to(self._device)
         return t
 
     def fit(self, episodes: BaseTrajectory):

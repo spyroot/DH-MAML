@@ -277,8 +277,8 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"task_train_meta_test/std_task", rewards_mean / total_task, step)
 
                 metric_receiver.update(metric_data)
-
                 tqdm_iter.set_postfix(tqdm_update_dict)
+
         except Exception as err:
             print("Error during meta-test", err)
         finally:
