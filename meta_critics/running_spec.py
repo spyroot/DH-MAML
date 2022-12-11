@@ -226,14 +226,16 @@ class RunningSpec:
         _config = self._running_config
         if root is not None:
             if root not in self._running_config:
-                raise RunningSpecError(f"{root} configuration not present in current spec.")
+                msg = f"{root} configuration not present in current spec."
+                raise RunningSpecError(msg)
             _config = self._running_config[root]
 
         k = k.lower().strip().replace("-", "_")
         if k in _config:
             return _config[k]
         else:
-            raise RunningSpecError(f"Parameter '{k}' is not present in current {root} running config.")
+            msg = f"Parameter {k} is not present in current {root} running config."
+            raise RunningSpecError(msg)
 
     def show(self):
         """Show configuration file.

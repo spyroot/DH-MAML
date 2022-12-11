@@ -18,6 +18,7 @@ from torch.distributed.rpc import RRef, remote
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from meta_critics.ioutil.term_util import print_red
 from meta_critics.policies.policy import Policy
 from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.generic_rpc_agent import GenericRpcAgent
@@ -379,14 +380,16 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 # episode_queue.task_done()
                 await metric_queue.put((metrics, reward_metrics))
                 await self_agent.broadcast_grads()
-
+            except asyncio.CancelledError:
+                print_red(f"Canceling trainer consumer")
+                break
             except ValueError as verr:
-                print("Error in trainer consumer.", verr)
+                print_red(f"Error in trainer consumer: {verr}")
                 print(traceback.print_exc())
                 await self_agent.shutdown_observers()
                 raise verr
             except Exception as generaLexp:
-                print("Error in trainer consumer.", generaLexp)
+                print_red(f"Error in trainer consumer: {generaLexp}")
                 print(traceback.print_exc())
                 await self_agent.shutdown_observers()
                 raise generaLexp

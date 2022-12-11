@@ -3,6 +3,7 @@
 #  Mus
 import asyncio
 import os
+import signal
 import traceback
 from pathlib import Path
 from typing import Optional
@@ -465,15 +466,24 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
         rpc.shutdown()
     except KeyboardInterrupt as kb:
         rpc.shutdown()
+        ask_exit()
         raise kb
     except Exception as other_exp:
         print(other_exp)
         print(traceback.print_exc())
 
 
+def ask_exit():
+    """
+    :return:
+    """
+    for task in asyncio.all_tasks():
+        task.cancel()
+
+
 def run_worker(rank: int, world_size: int, spec: RunningSpec):
     """
-    Main entry called by main routine.
+    Main entry called by main routine
     :param rank:
     :param world_size:
     :param spec:
@@ -486,7 +496,14 @@ def run_worker(rank: int, world_size: int, spec: RunningSpec):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
+        # for sig in (signal.SIGINT, signal.SIGTERM):
+        #     loop.add_signal_handler(sig, ask_exit)
         loop.run_until_complete(rpc_async_worker(rank, world_size, spec))
+    except SystemExit:
+        print("caught SystemExit!")
+        ask_exit()
+        # task.exception()
+        raise
     except Exception as loop_err:
         print(loop_err)
     finally:

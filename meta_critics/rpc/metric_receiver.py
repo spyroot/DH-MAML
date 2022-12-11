@@ -37,7 +37,7 @@ class MetricReceiver:
                 entity = spec.get("entity", "wandb")
 
             if spec.contains("project", "wandb"):
-                project = spec.get("project", "entity")
+                project = spec.get("project", "wandb")
 
             self.use_wandb = True
             wandb.init(project=project, entity=entity, config=self.spec.as_dict())

@@ -66,7 +66,7 @@ class RemoteSimulation:
         pass
 
     async def start(self, queue, task_list, num_meta_tasks, debug=False):
-        """Starts asyncio coroutine.
+        """Starts asyncio coroutine
         :param queue:  A queue method will use to serialize trajectories.
         :param task_list: a list of task.
         :param num_meta_tasks:
@@ -78,7 +78,7 @@ class RemoteSimulation:
                 self.envs.reset_task(task)
                 await self.sample(queue)
         except Exception as err:
-            print_red("Error in meta sample: ", err)
+            print_red(f"Error in meta sample: {err}")
             raise err
 
     async def meta_tests(self, tasks):
@@ -91,7 +91,7 @@ class RemoteSimulation:
                 trajectory_train.append(_meta_train)
                 meta_test_episodes.append(_meta_test)
         except Exception as err:
-            print("Error in meta test", err)
+            print_red(f"Error in meta sample: {err}")
             raise err
 
         return trajectory_train, meta_test_episodes

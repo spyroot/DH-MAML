@@ -9,6 +9,7 @@ import torch
 import torch.distributed.rpc as rpc
 from torch.distributed.rpc import RRef
 
+from meta_critics.ioutil.term_util import print_red
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
 from meta_critics.rpc.async_logger import AsyncLogger
@@ -183,8 +184,8 @@ class RpcObservers:
         # TODO for now num step for train and validation is same
         for step in range(n_steps):
             async def trajectory_consumer(q):
-                try:
-                    while True:
+                while True:
+                    try:
                         future_item = await q.get()
                         if future_item is None:
                             break
@@ -197,10 +198,13 @@ class RpcObservers:
                             _val.append(data)
 
                         q.task_done()
-                except Exception as err:
-                    print(err)
-                    print(traceback.format_exc())
-                    raise err
+                    except asyncio.CancelledError:
+                        print_red(f"Canceling trainer consumer")
+                        break
+                    except Exception as err:
+                        print(err)
+                        print(traceback.format_exc())
+                        raise err
 
             assert len(meta_task) == self.num_task
             consumers = []
