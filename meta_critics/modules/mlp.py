@@ -1,11 +1,10 @@
 from numbers import Number
-from numbers import Number
 from typing import List, Optional, Sequence, Tuple, Type, Union
 
 import torch
 from torch import nn
 
-from meta_critics.modules.n import NoisyLinear, NoisyLazyLinear
+from meta_critics.modules.noisy_linear import NoisyLinear, NoisyLazyLinear
 from meta_critics.policies.dist_utils import create_on_device
 from torch_util.utils import prod
 
@@ -50,17 +49,19 @@ class MLP(nn.Sequential):
         _out_features_num = out_features
         if not isinstance(out_features, Number):
             _out_features_num = prod(out_features)
+
         self.out_features = out_features
         self._out_features_num = _out_features_num
         self.activation_class = activation_class
-        self.activation_kwargs = (
-activation_kwargs if activation_kwargs is not None else {})
+        self.activation_kwargs = (activation_kwargs if activation_kwargs is not None else {})
 
         self.norm_class = norm_class
         self.norm_kwargs = norm_kwargs if norm_kwargs is not None else {}
+
         self.bias_last_layer = bias_last_layer
         self.single_bias_last_layer = single_bias_last_layer
         self.layer_class = layer_class
+
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.activate_last_layer = activate_last_layer
         if single_bias_last_layer:

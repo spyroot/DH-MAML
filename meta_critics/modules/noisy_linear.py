@@ -171,14 +171,26 @@ class NoisyLazyLinear(LazyModuleMixin, NoisyLinear):
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
+        """
+        Reset if no parameters initialize
+        :return:
+        """
         if not self.has_uninitialized_params() and self.in_features != 0:
             super().reset_parameters()
 
     def reset_noise(self) -> None:
+        """
+
+        :return:
+        """
         if not self.has_uninitialized_params() and self.in_features != 0:
             super().reset_noise()
 
     def initialize_parameters(self, input: torch.Tensor) -> None:
+        """
+        :param input:
+        :return:
+        """
         if self.has_uninitialized_params():
             with torch.no_grad():
                 self.in_features = input.shape[-1]
