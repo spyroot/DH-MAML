@@ -104,6 +104,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             losses = -weighted_mean(ratio * valid_episodes.advantages, lengths=valid_episodes.lengths)
             kls = weighted_mean(kl_divergence(new_policy, detached_policy), lengths=valid_episodes.lengths)
 
+        print(losses.device)
+        print(kls.device)
+
         return losses.mean(), kls.mean(), detached_policy, inner_losses
 
     async def step(self, train_futures, valid_futures, debug=True):
@@ -119,9 +122,11 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
 
-        old_losses = torch.empty(len(data))
-        inner_loss = torch.empty(len(data))
-        old_kl = torch.empty(len(data))
+        old_losses = torch.empty(len(data), device=self.device)
+        old_losses.requires_grad_()
+        inner_loss = torch.empty(len(data), device=self.device)
+        old_kl = torch.empty(len(data), device=self.device)
+        old_kl.requires_grad_()
         old_policies = []
 
         for i in range(0, len(data)):
@@ -144,6 +149,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             print(f"param loss device {p.device}")
         old_losses.to(self.device)
         old_kl.to(self.device)
+
 
         try:
 
