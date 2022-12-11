@@ -123,10 +123,10 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         data = list(zip(zip(*train_futures), valid_futures))
 
         old_losses = torch.empty(len(data), device=self.device)
-        old_losses.requires_grad_()
+        # old_losses.requires_grad_()
         inner_loss = torch.empty(len(data), device=self.device)
         old_kl = torch.empty(len(data), device=self.device)
-        old_kl.requires_grad_()
+        # old_kl.requires_grad_()
         old_policies = []
 
         for i in range(0, len(data)):
