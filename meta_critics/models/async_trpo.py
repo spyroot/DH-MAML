@@ -26,6 +26,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         assert self.policy is not None
         assert self.spec is not None
 
+        self.ls_counter = 0
         self.fast_lr = self.spec.get('fast_lr', 'meta_task')
         self.first_order = self.spec.get('first_order', 'meta_task')
 
@@ -117,19 +118,19 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
 
-        old_losses = []
-        inner_loss = []
-        old_kl = []
+        old_losses = torch.empty(len(data))
+        inner_loss = torch.empty(len(data))
+        old_kl = torch.empty(len(data))
+        old_policies = []
+
         for i in range(0, len(data)):
             t, v = data[i]
-            outer_loss, kl_loss, old_policy, inner_adapt_loss = self.surrogate_loss(t, v, detached_policy=None)
-            old_losses.append(outer_loss)
-            old_kl.append(kl_loss)
-            inner_loss.append(inner_adapt_loss)
+            old_losses[i], old_kl[i], old_policy, inner_loss[i] = self.surrogate_loss(t, v, detached_policy=None)
+            old_policies.append(old_policy)
 
-        old_losses = torch.stack(old_losses).sum() / num_meta_tasks
-        inner_loss = torch.stack(inner_loss).sum() / num_meta_tasks
-        old_kl = torch.stack(old_kl).sum() / num_meta_tasks
+        old_losses = old_losses.sum() / num_meta_tasks
+        inner_loss = inner_loss.sum() / num_meta_tasks
+        old_kl = old_kl.sum() / num_meta_tasks
 
         logs["inner_pre"] = inner_loss
         logs["old_loss"] = old_losses
@@ -149,29 +150,25 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             # old parameters
             old_params = parameters_to_vector(self.policy.parameters())
             step_size = 1.0
-            self.max_kl = torch.tensor(self.max_kl)
 
+            self.max_kl = torch.tensor(self.max_kl)
             for _ in range(self.ls_max_steps):
                 vec2parameters(old_params - step_size * step, self.policy.parameters())
-                new_kl = []
-                new_loss = []
-                new_inner_loss = []
+
+                _new_kl = torch.empty(len(data))
+                _new_loss = torch.empty(len(data))
+                _new_inner_loss = torch.empty(len(data))
+
                 for i in range(0, len(data)):
                     t, v = data[i]
-                    _new_loss, _new_kl, _, _new_inner = self.surrogate_loss(t, v, detached_policy=old_policy)
-                    new_kl.append(_new_kl)
-                    new_loss.append(_new_loss)
-                    new_inner_loss.append(_new_inner)
+                    _new_loss[i], _new_kl[i], _, _new_inner_loss[i] = self.surrogate_loss(t, v,
+                                                                                       detached_policy=old_policies[i])
 
-                new_improved_loss = (torch.stack(new_loss).sum() / num_meta_tasks) - old_losses
-                new_inner_loss = (torch.stack(new_inner_loss).sum() / num_meta_tasks) - inner_loss
-                new_kl = torch.stack(new_kl).sum() / num_meta_tasks
+                new_improved_loss = (_new_loss.sum() / num_meta_tasks) - old_losses
+                new_inner_loss = (_new_inner_loss.sum() / num_meta_tasks) - inner_loss
+                new_kl = _new_kl.sum() / num_meta_tasks
 
                 logs['improved'] = new_improved_loss
-
-                print(new_improved_loss.item() < 0.0)
-                print(new_kl < self.max_kl)
-
                 if (new_improved_loss.item() < 0.0) and (new_kl < self.max_kl):
                     print("### Best loss ", new_improved_loss)
                     print("kl_post", new_kl)
@@ -183,9 +180,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                     print("############# current improved "
                           "loss {:.4} kl {:.4} max {:.4}".format(new_improved_loss.item(),
                                                                  new_kl.item(), self.max_kl.item()))
-                # else:
-                # print("improved")
                 step_size *= self.ls_backtrack_ratio
+                self.ls_counter += 1
+                logs['ls_counter'] = self.ls_counter
             else:
                 vec2parameters(old_params, self.policy.parameters())
 

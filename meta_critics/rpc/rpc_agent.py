@@ -13,6 +13,7 @@ import gym
 import numpy as np
 import torch
 import torch.distributed.rpc as rpc
+from numpy import ndarray
 from torch.distributed.rpc import RRef, remote
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -255,13 +256,16 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 tqdm_update_dict = {}
                 for k in metrics.keys():
                     v = metrics[k]
-                    if not isinstance(v, torch.Tensor):
-                        loss_term = torch.stack(metrics[k]).mean().item()
+                    if isinstance(v, torch.Tensor):
+                        tqdm_update_dict[k] = v.mean().item()
+                        writer.add_scalar(f"loss/{k}", v.mean().item(), i_episode)
+                    elif isinstance(v, ndarray):
+                        loss_term = metrics[k].mean()
                         tqdm_update_dict[k] = loss_term
                         writer.add_scalar(f"loss/{k}", loss_term, i_episode)
                     else:
-                        tqdm_update_dict[k] = v.item()
-                        writer.add_scalar(f"loss/{k}", v.item(), i_episode)
+                        tqdm_update_dict[k] = v
+                        writer.add_scalar(f"loss/{k}", v, i_episode)
                     # wandb.log({k: v})
 
                 for k, v in tensor_board_metrics.items():
