@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 from meta_critics.ioutil.term_util import print_red
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
-from meta_critics.models.async_trpo import ConcurrentMamlTRPO
+from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
 from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.metric_receiver import MetricReceiver
 from meta_critics.rpc.rpc_agent import DistributedAgent

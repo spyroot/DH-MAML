@@ -1,3 +1,7 @@
+"""
+Main class for meta learner algorithms to inherited from.
+Provide baseline
+"""
 from typing import Optional, Callable
 
 import torch
@@ -10,7 +14,6 @@ from meta_critics.running_spec import RunningSpec
 class GradientMetaLearner(object):
     def __init__(self, policy: Policy, spec: RunningSpec, debug=False):
         """
-
         :param policy: Agent Policy Meta Learner will use
         :param spec:  Specs for meta learner. Different Meta Learner might have own model specific.
         """
@@ -43,7 +46,7 @@ class GradientMetaLearner(object):
         raise NotImplementedError()
 
     def hessian_vector_product(self, kl: torch.Tensor) -> Callable:
-        """
+        """ Compute hessian vector product on CPU or GPU
         :param kl:
         :return:
         """

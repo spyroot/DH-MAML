@@ -27,7 +27,7 @@ from meta_critics.rpc.rpc_observer import RpcObservers
 from meta_critics.rpc.shared_vars import OBSERVER_NAME
 from meta_critics.running_spec import RunningSpec
 from meta_critics.trajectory.advantage_episode import AdvantageBatchEpisodes
-from meta_critics.models.async_trpo import ConcurrentMamlTRPO
+from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
 from meta_critics.base_trainer.internal.utils import to_numpy
 
 
@@ -168,9 +168,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """
         # we need detach to cpu
         # await logger.debug(f"agent {self.agent_rref} broadcasting grads")
-        def updated():
-            print("Grad updated")
-
         with self.self_lock:
             p = OrderedDict(self.agent_policy.cpu().named_parameters())
             for ob_rref in self.ob_rrefs:
@@ -185,13 +182,13 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """
         self.log(f"agent {self.agent_rref} broadcasting rref")
         for ob_rref in self.ob_rrefs:
-            f = ob_rref.rpc_sync().update_agent_rref(self.agent_rref, self.agent_rref)
+            ob_rref.rpc_sync().update_agent_rref(self.agent_rref, self.agent_rref)
 
     async def distribute_tasks(self, queue, n_steps=0):
         """Distribute task to each observer. Method doesn't wait.
         It distributes tasks via async RPC and put future to a queue.
         There is separate consumer wait on this event. Note RPC
-        doesn't wait.
+        doesn't wait
         :param queue: a queue where RPC call will put a torch.Future
         :param n_steps: number of step observer need execute policy gradient.
                By default, it just 1.
@@ -252,7 +249,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """
         # for a sake of time metric average for LS compute here.
         # TODO I have internal state metric counter to make it more generic
-        # this call should call generic callback and serialize metric without hardcodings
+        # this call should call generic callback and serialize metric without hard codings
         # any specific.  for now we want to track average LS step TRPO took to push KL term
         # it useful to track for each task.
         # await logger.info("Received future from remote client.")

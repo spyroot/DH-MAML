@@ -25,4 +25,5 @@ class AsyncGradientBasedMetaLearner(GradientMetaLearner, ABC):
         """
         print(type(coroutines))
         coroutine = asyncio.gather(*coroutines)
-        return zip(*self._event_loop.run_until_complete(coroutine))
+        co = zip(*self._event_loop.run_until_complete(coroutine))
+        return co
