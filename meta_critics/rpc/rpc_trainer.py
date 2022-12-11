@@ -210,8 +210,9 @@ class DistributedMetaTrainer:
         # new policy
         policy_creator = PolicyCreator(env, self.spec)
         agent_policy, _ = policy_creator()
+        agent_policy.to(self.spec.get('device'))
         linear_baseline = LinearFeatureBaseline(env, device).to(device)
-
+        linear_baseline.to(self.spec.get('device'))
         simulation = RemoteSimulation(1, spec=self.spec,
                                       policy=agent_policy,
                                       baseline=linear_baseline)
@@ -236,7 +237,6 @@ class DistributedMetaTrainer:
             tqdm_iter.set_postfix(tqdm_update_dict)
 
             async for _ in tqdm_iter:
-                rewards = []
                 tasks = await self.agent.sample_tasks()
                 _, meta_tasks = await simulation.meta_tests(tasks)
 
