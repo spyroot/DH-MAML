@@ -1,26 +1,30 @@
 import threading
 import traceback
 from queue import Queue, Full, Empty
-from typing import Dict
+from typing import Dict, Optional
 import torch
 import wandb
 
-wandb.init(project="dh-maml", entity="spyroot")
+from running_spec import RunningSpec
 
 
 class MetricReceiver:
 
-    def __init__(self, num_episodes):
+    def __init__(self, num_episodes, spec: RunningSpec, queue_size: Optional[int] = 100):
         """
 
         :param num_episodes:
         """
+        # track ls step CG took.
         self.ls_steps_metric = torch.empty(num_episodes)
+        # execution for update.
         self.step = 0
+        wandb.init(project="dh-maml", entity="spyroot", config=spec.show())
 
         # buffer called from trainer,   cv used to notify data arrived.
-        self.buffer = Queue(maxsize=100)
-        self.main_buffer = Queue(maxsize=100)
+        self.buffer = Queue(maxsize=queue_size)
+        self.main_buffer = Queue(maxsize=queue_size)
+        # cv for produce and consumer to communicate
         self.self_cv = threading.Condition()
         self.self_main_cv = threading.Condition()
 
@@ -130,8 +134,6 @@ class MetricReceiver:
 
     def consumer(self) -> None:
         """ Consumer thread computes all metrics.
-
-        # Training in progress, dev: cpu,:   2%| | 8/499 [06:40<7:40:22, 56.26s/it, inner_pre=-.00939, old_loss=-5.88e-9, old_kl=0, ls_step=15, improved=-2.09e-5, ls_counter=39, inner_postconsumer data {'inner_pre': -0.009393773972988129, 'old_loss': -5.882904385856591e-09, 'old_kl': 0.0, 'ls_step': 15, 'improved': -2.08782876143232e-05, 'ls_counter': 39, 'inner_post': 7.863156497478485e-05, 'loss_post': -2.08782876143232e-05, 'kl_post': 1.6577161659370176e-05, 'train_rewards/meta_train': tensor(-356.1232), 'train_rewards/meta_validation': tensor(-307.9262)}
         :return:
         """
         while not self.shutdown_flag.is_set():
@@ -150,6 +152,7 @@ class MetricReceiver:
                     self.ls_steps_metric[self.step] = data['ls_step']
                     data['ls_step'] = self.ls_steps_metric.mean()
 
+                self.step += 1
                 wandb.log(data)
 
             except Empty as _:
