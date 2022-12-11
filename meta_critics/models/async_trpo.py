@@ -137,6 +137,10 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         logs["old_loss"] = old_losses
         logs["old_kl"] = old_kl
 
+        print(f"OLD loss device {old_losses.device}")
+        for p in self.policy.parameters():
+            print(f"OLD loss device {p.device}")
+
         try:
 
             grads = torch.autograd.grad(old_losses, list(self.policy.parameters()), retain_graph=True)
