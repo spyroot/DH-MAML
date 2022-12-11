@@ -243,6 +243,7 @@ class DistributedMetaTrainer:
                 rewards_std = 0
                 rewards_mean = 0
                 total_task = 0
+
                 for meta_task_i, episode in enumerate(meta_tasks):
                     # trajectory for a task a mean reward,
                     # std per task, sum reward per task
