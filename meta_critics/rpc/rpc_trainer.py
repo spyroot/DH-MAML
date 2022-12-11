@@ -242,13 +242,14 @@ class DistributedMetaTrainer:
                 rewards_sum = 0
                 rewards_std = 0
                 rewards_mean = 0
-
+                total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks):
                     # trajectory for a task a mean reward,
                     # std per task, sum reward per task
                     rewards_sum += episode.rewards.sum().cpu().item()
                     rewards_std += episode.rewards.std().cpu().item()
                     rewards_mean += episode.rewards.mean().cpu().item()
+                    total_task += 1
 
                 tqdm_update_dict["reward mean"] = rewards_mean
                 tqdm_update_dict["reward sum"] = rewards_sum
@@ -258,12 +259,19 @@ class DistributedMetaTrainer:
                     'reward mean': rewards_mean,
                     'reward sum': rewards_sum,
                     'reward std': rewards_std,
+                    'reward mean task': rewards_mean / total_task,
+                    'reward sum task': rewards_sum / total_task,
+                    'reward std task': rewards_std / total_task,
                     'step': step,
                 }
 
                 self.tf_writer.add_scalar(f"train_meta_test/mean", rewards_sum, step)
                 self.tf_writer.add_scalar(f"train_meta_test/sum", rewards_std, step)
                 self.tf_writer.add_scalar(f"train_meta_test/std", rewards_mean, step)
+
+                self.tf_writer.add_scalar(f"train_meta_test/mean_task", rewards_sum / total_task, step)
+                self.tf_writer.add_scalar(f"train_meta_test/sum_task", rewards_std / total_task, step)
+                self.tf_writer.add_scalar(f"train_meta_test/std_task", rewards_mean / total_task, step)
 
                 metric_receiver.update(metric_data)
 
@@ -420,13 +428,13 @@ async def worker(rank: Optional[int] = -1, world_size: Optional[int] = -1, self_
     # await logger.info(f"Observer rank {rank} starting.")
 
 
-async def rpc_async_worker(rank, world_size, spec: RunningSpec):
-    """
-
-    :param rank:
-    :param world_size:
-    :param spec:
-    :return:
+async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> None:
+    """Main logic for rpc async worker,  it crates N agents ,
+    each agent N observers
+    :param rank: rank of each worker
+    :param world_size: world_size number of workers.
+    :param spec: running spec for a trainer
+    :return: Nothing
     """
     os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = '29517'
@@ -445,10 +453,9 @@ async def rpc_async_worker(rank, world_size, spec: RunningSpec):
             # TODO here torch has issue parent might be already dead.
             # I don't import multiprocessing lib since it lead to many other issue.
             # One idea register interrupt handler and handle signals
-            logger = AsyncLogger()
             # logger = Logger.with_default_handlers(name='meta_critic', level=logging.INFO)
             rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size)
-            await worker(rank=rank, world_size=world_size, self_logger=logger)
+            await worker(rank=rank, world_size=world_size, self_logger=AsyncLogger())
         # await logger.
         print(f"Shutdown down {worker_name}")
         rpc.shutdown()

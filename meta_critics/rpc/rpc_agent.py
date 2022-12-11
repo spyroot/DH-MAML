@@ -192,7 +192,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """Distribute task to each observer. Method doesn't wait.
         It distributes tasks via async RPC and put future to a queue.
         There is separate consumer wait on this event. Note RPC
-        doesn't wait
+        doesn't wait.
         :param queue: a queue where RPC call will put a torch.Future
         :param n_steps: number of step observer need execute policy gradient.
                By default, it just 1.
@@ -308,7 +308,8 @@ class DistributedAgent(GenericRpcAgent, ABC):
 
     @staticmethod
     async def trainer_consumer(self_agent: GenericRpcAgent,
-                               episode_queue: asyncio.Queue, metric_queue: asyncio.Queue,
+                               episode_queue: asyncio.Queue,
+                               metric_queue: asyncio.Queue,
                                _meta_learner: ConcurrentMamlTRPO,
                                device='cpu'):
         """
