@@ -12,6 +12,8 @@
       <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_231922-10kjnyy7" />
       <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_232600-3jcn4kv6" />
       <excludeFolder url="file://$MODULE_DIR$/wandb/run-20221211_233627-140zdj5d" />
+      <excludeFolder url="file://$MODULE_DIR$/navigation.02" />
+      <excludeFolder url="file://$MODULE_DIR$/navigation" />
     </content>
     <orderEntry type="jdk" jdkName="dtc (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
