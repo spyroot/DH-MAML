@@ -199,7 +199,7 @@ class RpcObservers:
 
                         q.task_done()
                     except asyncio.CancelledError:
-                        print_red(f"Canceling trainer consumer")
+                        # print_red(f"Canceling observer consumer")
                         break
                     except Exception as err:
                         print(err)

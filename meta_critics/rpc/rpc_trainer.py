@@ -460,12 +460,12 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             await worker(rank=rank, world_size=world_size, self_logger=AsyncLogger())
         # await logger.
         print(f"Shutdown down {worker_name}")
-        rpc.shutdown()
+        rpc.shutdown(graceful=True)
     except FileNotFoundError as file_not_found:
         print_red(str(file_not_found))
         rpc.shutdown()
     except KeyboardInterrupt as kb:
-        rpc.shutdown()
+        rpc.shutdown(graceful=True)
         ask_exit()
         raise kb
     except Exception as other_exp:

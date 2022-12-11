@@ -381,7 +381,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 await metric_queue.put((metrics, reward_metrics))
                 await self_agent.broadcast_grads()
             except asyncio.CancelledError:
-                print_red(f"Canceling trainer consumer")
+                # print_red(f"Canceling trainer consumer")
                 break
             except ValueError as verr:
                 print_red(f"Error in trainer consumer: {verr}")
