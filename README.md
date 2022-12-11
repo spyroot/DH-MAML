@@ -1,8 +1,16 @@
 # DH-MAML
 Implementation Distribute Hierarchical Meta Reinforce Learner (DH-MAML)
 The key idea focused on the Meta Gradient method. MAML and other meta gradient methods.
-The main 
 
+The main observation is that we can distribute the same meta-tasks to many agents, and each agent 
+distributes a set of meta-tasks to many observers. The principal agent and other agents have their own policies.
+The agent asks each observer to roll out many trajectories based on many tasks. Each observer collects a required 
+number of trajectories and replays back the agent via RPC to agents.  
+
+The agent first sends all trajectories tensor to the device and passes that data to the algorithm.   
+For example, in the current implementation, it is MAML and TRPO.   Thus, during the meta-training phase, 
+we first perform the adaption phase for an existing policy after the algorithm uses TRPO semantics to compute 
+new KL terms for the current policy. Finally, the principal agent receives all updates from all the agents. 
 
 ## References
 This work uses many ideas and the work of many brilliant papers.  
