@@ -12,6 +12,11 @@ For example, in the current implementation, it is MAML and TRPO.   Thus, during 
 we first perform the adaption phase for an existing policy after the algorithm uses TRPO semantics to compute 
 new KL terms for the current policy. Finally, the principal agent receives all updates from all the agents. 
 
+## Architecture
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
+
 ## Instruction.
 
 * Python 3.10
