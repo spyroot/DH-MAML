@@ -69,7 +69,9 @@ if __name__ == '__main__':
     try:
         current_dir = os.getcwd()
         running_spec = RunningSpec(args, mode, current_dir)
-        print(running_spec)
+        s = running_spec.as_dict()
+        print(s)
+
 
     except RunningSpecError as r_except:
         print(f"Error:", r_except)

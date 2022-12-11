@@ -44,7 +44,7 @@ meta_task:
 
 model:
   name: trpo
-  model_type: AsyncMAMLTRPO
+  model_type: ConcurrentMamlTRPO
   max_kl: 1.0e-2
   cg_iters: 10
   ls_max_steps: 15

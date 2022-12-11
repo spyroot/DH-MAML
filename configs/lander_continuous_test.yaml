@@ -46,7 +46,7 @@ meta_task:
 
 model:
   name: trpo
-  model_type: AsyncMAMLTRPO
+  model_type: ConcurrentMamlTRPO
   cg_iters: 10
   ls_max_steps: 15
   cg_damping: 1.0e-5

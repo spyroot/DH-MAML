@@ -4,8 +4,7 @@ from queue import Queue, Full, Empty
 from typing import Dict, Optional
 import torch
 import wandb
-
-from running_spec import RunningSpec
+from meta_critics.running_spec import RunningSpec
 
 
 class MetricReceiver:
@@ -41,7 +40,7 @@ class MetricReceiver:
                 project = spec.get("project", "entity")
 
             self.use_wandb = True
-            wandb.init(project=project, entity=entity, config=self.spec.show())
+            wandb.init(project=project, entity=entity, config=self.spec.as_dict())
 
         # buffer called from trainer,   cv used to notify data arrived.
         self.buffer = Queue(maxsize=queue_size)

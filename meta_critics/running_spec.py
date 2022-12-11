@@ -3,7 +3,7 @@ import json
 import os
 import warnings
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -294,17 +294,17 @@ class RunningSpec:
 
     def is_test(self):
         return self._mode == AppSelector.TestModel \
-               or self._mode == AppSelector.TrainTestModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestModel \
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def is_train(self):
         return self._mode == AppSelector.TranModel \
-               or self._mode == AppSelector.TrainTestModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestModel \
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def is_plot(self):
         return self._mode == AppSelector.PlotModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def __str__(self):
         return str(self.show())
@@ -332,3 +332,35 @@ class RunningSpec:
 
         return False
 
+    def _check_skip(self, skip_words: List[str], k: str) -> bool:
+        for w in skip_words:
+            if w in k:
+                return False
+        return True
+
+    def _as_dict(self, _iter, _final_dict, skip_words):
+        """
+
+        :param _iter:
+        :param _final_dict:
+        :return:
+        """
+        for k, v in _iter.items():
+            if isinstance(v, dict):
+                self._as_dict(v, _final_dict, skip_words)
+            else:
+                if self._check_skip(skip_words, k):
+                    _final_dict[k] = v
+
+                    continue
+        # return _final_dict
+
+    def as_dict(self, ):
+        """
+
+        :return:
+        """
+        _final_dict = {}
+        skip_words = ['debug', 'file', 'dir','train', 'tune', 'plot']
+        self._as_dict(self._running_config, _final_dict, skip_words)
+        return _final_dict

@@ -39,7 +39,7 @@ meta_task:
 
 model:
   name: trpo
-  model_type: AsyncMAMLTRPO  # model type.
+  model_type: ConcurrentMamlTRPO  # model type.
   max_kl: 1.0e-2             # trpo max kl term
   cg_iters: 10               # Number of iterations of Conjugate Gradient.
   cg_damping: 1.0e-5         # Value of the damping in Conjugate Gradient.
