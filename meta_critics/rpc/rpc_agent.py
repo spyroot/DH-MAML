@@ -284,9 +284,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     metric_data[f"train_rewards/{k}"] = v.mean()
 
                 # update metric listener
-                print("Update metric")
                 metric_receiver.update(metric_data)
-                print("Cameback metric")
 
                 # update tbar
                 tqdm_iter.set_postfix(tqdm_update_dict)
@@ -294,7 +292,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 metric_queue.task_done()
 
             except Exception as exp:
-                print("Error in metric dequeue", exp)
+                print("Error in metric dequeue:", exp)
                 print(traceback.print_exc())
             finally:
                 if not metric_queue.empty():

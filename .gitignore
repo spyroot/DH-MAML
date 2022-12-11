@@ -139,3 +139,4 @@ dmypy.json
 .pyre/
 /wandb/latest-run/
 /wandb/*
+/HalfCheetahVel/

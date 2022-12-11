@@ -1,15 +1,19 @@
 import threading
 import traceback
-
 from queue import Queue, Full, Empty
 from typing import Dict
-
 import torch
+import wandb
+wandb.init(project="dh-maml", entity="spyroot")
 
 
 class MetricReceiver:
 
     def __init__(self, num_episodes):
+        """
+
+        :param num_episodes:
+        """
         self.ls_steps_metric = torch.empty(num_episodes)
         self.step = 0
 
@@ -41,7 +45,7 @@ class MetricReceiver:
             self.__thread1.join()
             self.__thread2.join()
         except Exception as err:
-            print("Failed to join", err)
+            print("Failed to join: error", err)
 
     def start_producer(self, buffer, cv, main):
         """
@@ -53,7 +57,7 @@ class MetricReceiver:
         try:
             self.producer()
         except Exception as err:
-            print(err)
+            print("Failed to start thread error:", err)
             print(traceback.print_exc())
 
     def start_consumer(self, buffer, cv):
@@ -65,7 +69,7 @@ class MetricReceiver:
         try:
             self.consumer()
         except Exception as err:
-            print(err)
+            print("Failed to start thread error:", err)
             print(traceback.print_exc())
 
     def update(self, data: Dict):
@@ -88,7 +92,7 @@ class MetricReceiver:
                 self.main_buffer.put_nowait(data)
                 self.self_main_cv.notify()
             except Exception as err:
-                print("error")
+                print("Failed take a look")
             finally:
                 print("Return")
                 self.self_main_cv.notify()
@@ -108,12 +112,9 @@ class MetricReceiver:
                     self.main_buffer.task_done()
                     self.self_main_cv.notify()
                 except Empty as empty:
-                    print("Producer sleeping main queue empty.")
                     self.self_main_cv.notify_all()
                     self.self_main_cv.wait()
                     pass
-                finally:
-                    self.self_main_cv.notify_all()
 
             if data is not None:
                 with self.self_cv:
@@ -121,11 +122,9 @@ class MetricReceiver:
                         self.buffer.put_nowait(data)
                         self.self_cv.notify()
                     except Full as full:
-                        print("Producer sleeping, Consumer queue full")
                         self.self_cv.notify()
                         self.self_cv.wait()
                         pass
-                # self.self_cv.notify()
 
         print("Shutdown event.")
 
@@ -136,7 +135,6 @@ class MetricReceiver:
         while not self.shutdown_flag.is_set():
             try:
                 with self.self_cv:
-                    print("Consumer wake up")
                     data = self.buffer.get_nowait()
                     if data is None:
                         with self.self_cv:
@@ -151,7 +149,6 @@ class MetricReceiver:
 
             except Empty as empty:
                 with self.self_cv:
-                    print("Consumer no data, sleeping")
                     self.self_cv.notify()
                     self.self_cv.wait()
 
