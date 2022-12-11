@@ -228,7 +228,7 @@ class DistributedMetaTrainer:
 
         try:
             from tqdm.asyncio import trange, tqdm
-            tqdm_iter = tqdm(range(1, 10),
+            tqdm_iter = tqdm(range(1, 11),
                              desc=f"Meta-test in progress, dev: {self.spec.get('device')},")
 
             # update tbar
@@ -323,7 +323,7 @@ class DistributedMetaTrainer:
             await agent.broadcast_policy()
 
             from tqdm.asyncio import trange, tqdm
-            tqdm_iter = tqdm(range(1, num_batches),
+            tqdm_iter = tqdm(range(1, num_batches + 1),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
 
             async for episode_step in tqdm_iter:
@@ -505,7 +505,7 @@ def run_worker(rank: int, world_size: int, spec: RunningSpec):
         raise sys_exit
     except Exception as loop_err:
         print(loop_err)
-        raise
+        raise loop_err
     finally:
         if loop is not None and loop.is_running():
             loop.run_until_complete(loop.shutdown_asyncgens())
