@@ -175,11 +175,12 @@ class RemoteSimulation:
         """
         self.check_cuda = True
         observations, info = self.envs.reset()
-        if self.check_cuda:
-            assert next(self.policy.parameters()).is_cuda
+        # if self.check_cuda:
+        #     assert next(self.policy.parameters()).is_cuda
 
-        for k, v in params.items():
-            assert v.is_cuda
+        if params is not None:
+            for k, v in params.items():
+                assert v.is_cuda
 
         with torch.no_grad():
             while True:
