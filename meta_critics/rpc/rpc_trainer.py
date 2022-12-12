@@ -37,14 +37,16 @@ OBSERVER_NAME = "observer{}"
 # logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
-def async_gather(coroutines):
-    event_loop = asyncio.get_event_loop()
-    coroutine = asyncio.gather(*coroutines)
-    return zip(*event_loop.run_until_complete(coroutine))
+def format_num(n):
+    f = '{0:.3g}'.format(n)
+    f = f.replace('+0', '+')
+    f = f.replace('-0', '-')
+    n = str(n)
+    return f if len(f) < len(n) else n
 
 
 def resole_primary_dir(path_to_dir: str, create_if_needed: Optional[bool] = False) -> str:
-    """
+    """Resolve log dir and create if needed
     :param create_if_needed:
     :param path_to_dir:
     :return:
@@ -58,7 +60,7 @@ def resole_primary_dir(path_to_dir: str, create_if_needed: Optional[bool] = Fals
     if not log_file_path.exists():
         print(f"{log_dir} not found.")
         if create_if_needed:
-            os.makedirs(log_file_path)
+            os.makedirs(log_file_path, exist_ok=True)
         else:
             raise FileNotFoundError(f"Error: dir {log_dir} not found.")
 
@@ -254,9 +256,9 @@ class DistributedMetaTrainer:
                     rewards_mean += episode.rewards.mean().cpu().item()
                     total_task += 1
 
-                tqdm_update_dict["reward mean"] = rewards_mean / total_task
-                tqdm_update_dict["reward sum"] = rewards_sum / total_task
-                tqdm_update_dict["reward std"] = rewards_std / total_task
+                tqdm_update_dict["reward mean"] = format_num(rewards_mean / total_task)
+                tqdm_update_dict["reward sum"] = format_num(rewards_sum / total_task)
+                tqdm_update_dict["reward std"] = format_num(rewards_std / total_task)
 
                 metric_data = {
                     'reward mean': rewards_mean,
