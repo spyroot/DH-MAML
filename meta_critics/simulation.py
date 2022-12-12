@@ -173,9 +173,13 @@ class RemoteSimulation:
         :param params:
         :return:
         """
+        self.check_cuda = True
         observations, info = self.envs.reset()
-        print("Policy device is cuda", next(self.policy.parameters()).is_cuda)
-        print("param type ", type(params))
+        if self.check_cuda:
+            assert next(self.policy.parameters()).is_cuda
+
+        for k, v in params.items():
+            assert v.is_cuda
 
         with torch.no_grad():
             while True:
