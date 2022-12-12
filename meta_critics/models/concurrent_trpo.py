@@ -46,9 +46,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             losses = -weighted_mean(log_probs * episodes.advantages, lengths=episodes.lengths)
         except Exception as ex:
             # in case we have of bug it easy to track.
-            print("actions ## ", episodes.actions)
-            print("episodes ##", episodes.observations)
-            print("episodes ##", episodes.lengths)
+            print("actions      ## ", episodes.actions)
+            print("observations ##", episodes.observations)
+            print("episodes     ##", episodes.lengths)
             raise ex
 
         return losses.mean()
@@ -119,6 +119,8 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         :return:
         """
 
+        # need check why RPC bounce off to CPU sometime.
+        self.policy.to(self.device)
         logs = {}
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))

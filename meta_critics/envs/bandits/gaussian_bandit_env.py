@@ -42,7 +42,7 @@ class GaussianBanditEnv(BanditEnv, ABC):
 
         self.std = std
         self.action_space = spaces.Discrete(self.k)
-        self.observation_space = spaces.Box(low=0, high=0, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.task = task
 
         print(f"Creating GaussianBanditEnv task {task}, k={k}")

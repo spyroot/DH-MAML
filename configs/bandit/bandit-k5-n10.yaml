@@ -17,7 +17,7 @@ trainer:
   num-workers: 1
 
 trajectory_sampler:
-  remap_types: True
+  remap_types: False
 
 # Policy network
 policy_network:

@@ -35,7 +35,7 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         assert self.k > 0
         assert self.max_reward() > 0
         self.action_space = spaces.Discrete(self.k)
-        self.observation_space = spaces.Box(low=0, high=0, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
 
         if task is None:
             task = {}

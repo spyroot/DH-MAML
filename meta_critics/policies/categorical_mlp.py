@@ -11,6 +11,8 @@ from torch.distributions import Categorical
 from collections import OrderedDict
 from meta_critics.policies.policy import Policy
 
+from torch.nn.utils import weight_norm as wn
+from torch.nn.utils import remove_weight_norm as wnr
 
 def weight_init(module):
     if isinstance(module, nn.Linear):
@@ -27,10 +29,11 @@ class CategoricalRLPPolicy(Policy, nn.Module):
                  device: torch.device = 'cpu'):
         super(CategoricalRLPPolicy, self).__init__(input_size=input_size,
                                                    output_size=output_size)
+
+        self.device = device
         self.hidden_sizes = hidden_sizes
         self.activation = activation
         self.num_layers = len(hidden_sizes) + 1
-        self.device = device
         layer_sizes = (input_size,) + hidden_sizes + (output_size,)
         for i in range(1, self.num_layers + 1):
             self.add_module('layer{0}'.format(i), nn.Linear(layer_sizes[i - 1], layer_sizes[i]).to(device))
@@ -53,11 +56,12 @@ class CategoricalRLPPolicy(Policy, nn.Module):
         for i in range(1, self.num_layers):
             _W = W['layer{0}.weight'.format(i)]
             _B = W['layer{0}.bias'.format(i)]
+
             output = F.linear(output, weight=W['layer{0}.weight'.format(i)], bias=W['layer{0}.bias'.format(i)])
             output = self.activation(output).to(self.device)
 
         logits = F.linear(output,
                           weight=W['layer{0}.weight'.format(self.num_layers)],
                           bias=W['layer{0}.bias'.format(self.num_layers)])
-
+        # wn(logits)
         return Categorical(logits=logits)

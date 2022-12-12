@@ -29,10 +29,11 @@ class BanditEnv(gym.Env, ABC):
                  max_reward: Optional[int] = 1,
                  out: Optional[EnvType] = EnvType.NdArray):
         super(BanditEnv, self).__init__()
+
         self.k = k
         self._max_reward = max_reward
         self.action_space = spaces.Discrete(self.k)
-        self.observation_space = spaces.Box(low=0, high=0, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.out = out
 
     def max_reward(self) -> int:
