@@ -220,6 +220,9 @@ class RpcObservers:
                         print(err)
                         print(traceback.format_exc())
                         raise err
+                    finally:
+                        if not q.cancelled:
+                            q.task_done()
 
             assert len(meta_task) == self.num_task
             consumers = []
