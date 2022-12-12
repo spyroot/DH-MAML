@@ -171,10 +171,16 @@ class RpcObservers:
         future_task = torch.futures.collect_all(future_task)
 
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(self.async_sample_episode(loop,
-                                                          future_task,
-                                                          agent_rref,
-                                                          n_steps, task_id))
+        try:
+            loop.run_until_complete(self.async_sample_episode(loop,
+                                                              future_task,
+                                                              agent_rref,
+                                                              n_steps, task_id))
+        except KeyboardInterrupt as kb:
+            print("Observer recieved kb")
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            raise kb
+
         # await logger.info(f"Observer {self.id} return rpc future.")
         return future_task
 
@@ -212,16 +218,21 @@ class RpcObservers:
                             data = future_item["validation"].clone_as_tuple()
                             _val.append(data)
 
-                        q.task_done()
+                        # q.task_done()
                     except asyncio.CancelledError as canceled_err:
                         # print_red(f"Canceling observer consumer")
+                        fut.set_exception(canceled_err)
                         raise canceled_err
                     except Exception as err:
                         print(err)
                         print(traceback.format_exc())
+                        fut.set_exception(err)
                         raise err
                     finally:
-                        q.task_done()
+                        try:
+                            q.task_done()
+                        except ValueError as err:
+                            pass
 
             assert len(meta_task) == self.num_task
             consumers = []
