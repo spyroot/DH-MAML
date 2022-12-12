@@ -182,7 +182,7 @@ class DistributedAgent(GenericRpcAgent, ABC):
         """
         self.log(f"agent {self.agent_rref} broadcasting rref")
         for ob_rref in self.ob_rrefs:
-            ob_rref.rpc_sync().update_agent_rref(self.agent_rref, self.agent_rref)
+            ob_rref.rpc_sync(timeout=180).update_agent_rref(self.agent_rref, self.agent_rref)
 
     async def distribute_tasks(self, queue, n_steps=0):
         """Distribute task to each observer. Method doesn't wait.
