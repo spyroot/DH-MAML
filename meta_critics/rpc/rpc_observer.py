@@ -252,13 +252,8 @@ class RpcObservers:
 
         def update_agent(f):
             """We need detach parameter"""
-            # print("Update_agent callback. Updating gradient parameters.")
             try:
-                # print("Updating agent.")
                 current_parameters = OrderedDict(self.agent_policy.cpu().named_parameters())
-                # odict_keys(['sigma', 'layer1.weight', 'layer1.bias', 'layer2.weight', 'layer2.bias', 'mu.weight',
-                #             'mu.bias'])
-                #  print(current_parameters['layer1.weight'].grad)
                 self.agent_rref.rpc_sync().rpc_sync_grad(self.worker_rref, current_parameters)
             except Exception as ex:
                 print(ex)
