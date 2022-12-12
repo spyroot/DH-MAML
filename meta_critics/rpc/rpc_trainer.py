@@ -209,8 +209,6 @@ class DistributedMetaTrainer:
         device = self.spec.get("device")
         env = create_env_from_spec(self.spec)
 
-        print(device)
-
         # new policy
         policy_creator = PolicyCreator(env, self.spec)
         agent_policy, _ = policy_creator()
@@ -227,8 +225,6 @@ class DistributedMetaTrainer:
             state_dict = torch.load(f, map_location=torch.device(self.spec.get("device")))
             state_dict.pop("last_step")
             agent_policy.load_state_dict(state_dict)
-
-        # fcntl.fcntl(sys.stdout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
 
         try:
             from tqdm.asyncio import trange, tqdm
@@ -261,9 +257,9 @@ class DistributedMetaTrainer:
                 tqdm_update_dict["reward std"] = format_num(rewards_std / total_task)
 
                 metric_data = {
-                    'reward mean': rewards_mean,
-                    'reward sum': rewards_sum,
-                    'reward std': rewards_std,
+                    'tasks reward mean': rewards_mean,
+                    'tasks reward sum': rewards_sum,
+                    'tasks reward std': rewards_std,
                     'task reward mean': rewards_mean / total_task,
                     'task reward sum': rewards_sum / total_task,
                     'task std task': rewards_std / total_task,
@@ -437,7 +433,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     """Main logic for rpc async worker,  it crates N agents ,
     each agent N observers
     :param rank: rank of each worker
-    :param world_size: world_size number of workers.
+    :param world_size: world_size number of workers
     :param spec: running spec for a trainer
     :return: Nothing
     """

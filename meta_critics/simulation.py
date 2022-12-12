@@ -173,6 +173,12 @@ class RemoteSimulation:
         :return:
         """
         observations, info = self.envs.reset()
+
+        print("Policy device", next(self.policy.parameters()).is_cuda)
+        if params is not None:
+            print("Policy device", next(params.parameters()).is_cuda)
+            print("param type ", type(params))
+
         with torch.no_grad():
             while True:
                 if self.envs.is_terminated() or self.envs.is_truncated():

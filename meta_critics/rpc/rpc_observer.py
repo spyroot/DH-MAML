@@ -9,7 +9,6 @@ import torch
 import torch.distributed.rpc as rpc
 from torch.distributed.rpc import RRef
 
-from meta_critics.ioutil.term_util import print_red
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
 from meta_critics.rpc.async_logger import AsyncLogger
@@ -20,10 +19,11 @@ from util import create_env_from_spec
 
 class RpcObservers:
     def __init__(self, spec: RunningSpec,
-                 self_logger: Optional[AsyncLogger] = None):
+                 self_logger: Optional[AsyncLogger] = None, debug: Optional[bool] = False):
 
         self.spec = spec
         self.self_logger = self_logger
+        self.debug = False
 
         if not self.spec.contains("device"):
             raise ValueError("Observer: spec must container device.")
@@ -75,10 +75,23 @@ class RpcObservers:
             sys.exit(100)
 
     def update_agent_rref(self, agent_rref, arg):
-        # await logger.info(f"Observer {self.id} update agent policy.")
+        """
+
+        :param agent_rref:
+        :param arg:
+        :return:
+        """
+        # if self.debug:
+        #     await logger.debug(f"Observer {self.id} update agent policy.")
         self.agent_rref = arg
 
     def update_observer_policy(self, agent_rref, parameters):
+        """
+
+        :param agent_rref:
+        :param parameters:
+        :return:
+        """
         # await logger.info(f"Observer {self.id} update agent policy.")
         if self.agent_policy is None:
             env = create_env_from_spec(self.spec)
@@ -103,7 +116,9 @@ class RpcObservers:
         :param parameters:
         :return:
         """
-        self.log(f"{agent_rref} updating received type {type(parameters)}")
+        if self.debug:
+            self.log(f"{agent_rref} updating received type {type(parameters)}")
+
         fut = torch.futures.Future()
         try:
             with self.lock:
