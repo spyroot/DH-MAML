@@ -444,7 +444,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
 
     try:
         if rank == 0:
-            agent_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=4, rpc_timeout=180)
+            agent_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
             rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size,
                          rpc_backend_options=agent_backend)
             meta_trainer = DistributedMetaTrainer(spec=spec, world_size=world_size, self_logger=AsyncLogger())
@@ -453,11 +453,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             await meta_trainer.stop()
             # await logger.shutdown()
         else:
-            # TODO here torch has issue parent might be already dead.
-            # I don't import multiprocessing lib since it lead to many other issue.
-            # One idea register interrupt handler and handle signals
-            # logger = Logger.with_default_handlers(name='meta_critic', level=logging.INFO)
-            observer_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=4, rpc_timeout=180)
+            observer_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
 
             rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size,
                          rpc_backend_options=observer_backend)
@@ -467,7 +463,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
         rpc.shutdown(graceful=True)
     except FileNotFoundError as file_not_found:
         print_red(str(file_not_found))
-        rpc.shutdown()
+        rpc.shutdown(graceful=True)
     except KeyboardInterrupt as kb:
         rpc.shutdown(graceful=True)
         ask_exit()
