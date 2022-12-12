@@ -213,16 +213,15 @@ class RpcObservers:
                             _val.append(data)
 
                         q.task_done()
-                    except asyncio.CancelledError:
+                    except asyncio.CancelledError as canceled_err:
                         # print_red(f"Canceling observer consumer")
-                        break
+                        raise canceled_err
                     except Exception as err:
                         print(err)
                         print(traceback.format_exc())
                         raise err
                     finally:
-                        if not q.cancelled:
-                            q.task_done()
+                        q.task_done()
 
             assert len(meta_task) == self.num_task
             consumers = []
