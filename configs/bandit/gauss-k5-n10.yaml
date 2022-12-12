@@ -1,8 +1,8 @@
-experiment_name: "bandits_k5"
-env_name: "Bandit-K5-v0"
+experiment_name: "gaussian_bandit_k5"
+env_name: "GaussianBandit-K5-v0"
 
-log_dir: "~/meta_critics/logs/bandit_k5"
-model_dir: "~/meta_critics/models/bandit_k5"
+log_dir: "~/meta_critics/logs/gauss_bandit_k5"
+model_dir: "~/meta_critics/models/gauss_bandit_k5"
 create_dir True:
 
 trainer:

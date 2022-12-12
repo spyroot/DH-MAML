@@ -23,7 +23,8 @@ from meta_critics.envs.env_types import EnvType
 class BernoulliBanditEnv(BanditEnv, ABC):
     def __init__(self, k: int,
                  max_reward: Optional[int] = 1,
-                 out: Optional[EnvType] = EnvType.NdArray, task=None):
+                 out: Optional[EnvType] = EnvType.NdArray,
+                 task=None):
         """
 
         :param k:
@@ -69,7 +70,7 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         :param options:
         :return:
         """
-        return np.zeros(1, dtype=np.float32), {'task': self._task}
+        return np.random.uniform(size=1).astype(np.float32), {'task': self._task}
 
     def step(self, action) -> Tuple[ObsType, float, bool, bool, dict]:
         """Agent takes agent environment return observation, reward, etc
@@ -79,5 +80,5 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         assert self.action_space.contains(action)
         mean = self._means[action]
         reward = self.np_random.binomial(1, mean)
-        observation = np.zeros(1, dtype=np.float32)
+        observation = np.random.uniform(size=1).astype(np.float32)
         return observation, reward, True, False, {'task': self._task}

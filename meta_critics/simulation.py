@@ -93,6 +93,8 @@ class RemoteSimulation:
         """
         try:
             for i, task in enumerate(task_list):
+                # import time
+                # time.sleep(1)
                 self.envs.reset_task(task)
                 await self.sample(queue)
         except Exception as err:

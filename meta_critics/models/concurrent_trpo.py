@@ -40,6 +40,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         """
         try:
             episodes.to_gpu()
+
             pi = self.policy(episodes.observations.view((-1, *episodes.observation_shape)).float(), W=W)
             log_probs = pi.log_prob(episodes.actions.view((-1, *episodes.action_shape)))
             log_probs = log_probs.view(torch.max(episodes.lengths), episodes.batch_size)

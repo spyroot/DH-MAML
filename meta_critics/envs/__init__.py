@@ -19,6 +19,12 @@ for k in [5, 10, 50]:
             kwargs={'k': k}
     )
 
+for k in [5, 10, 50]:
+    register(
+            'GaussianBandit-K{0}-v0'.format(k),
+            entry_point='meta_critics.envs.bandits.gaussian_bandit_env:GaussianBanditEnv',
+            kwargs={'k': k}
+    )
 
 register(
         'navigation-v0',

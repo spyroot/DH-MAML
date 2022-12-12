@@ -11,13 +11,14 @@
        Learning", 2016 (https://arxiv.org/abs/1611.02779)
    """
 from abc import ABC
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 from gym.core import ObsType
 from gym.vector.utils import spaces
 
 from meta_critics.envs.bandits.bandit_base_env import BanditEnv
+from meta_critics.envs.env_types import EnvType
 
 
 class GaussianBanditEnv(BanditEnv, ABC):
@@ -30,13 +31,16 @@ class GaussianBanditEnv(BanditEnv, ABC):
     from the uniform distribution on [0, 1].
     """
 
-    def __init__(self, k, std=1.0, task=None):
+    def __init__(self, k: int,
+                 max_reward: Optional[int] = 1,
+                 out: Optional[EnvType] = EnvType.NdArray,
+                 task=None, std=1.0):
         """
         :param k:
         :param std:
         :param task:
         """
-        super(GaussianBanditEnv, self).__init__(k=k, task=task)
+        super(GaussianBanditEnv, self).__init__(k=k, max_reward=max_reward, out=out)
         assert self.k > 0
         assert self.max_reward() > 0
 
@@ -58,7 +62,7 @@ class GaussianBanditEnv(BanditEnv, ABC):
         :param num_tasks:
         :return:
         """
-        means = self.np_random.rand(num_tasks, self.k)
+        means = np.random.rand(num_tasks, self.k)
         tasks = [{'mean': mean} for mean in means]
         return tasks
 
@@ -79,4 +83,4 @@ class GaussianBanditEnv(BanditEnv, ABC):
         mean = self._means[action]
         reward = self.np_random.normal(mean, self.std)
         observation = np.zeros(1, dtype=np.float32)
-        return observation, reward, True, True, {'task': self._task}
+        return observation, reward, True, False, {'task': self._task}
