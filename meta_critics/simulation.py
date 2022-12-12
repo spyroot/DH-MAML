@@ -6,7 +6,8 @@
 Mus
 """
 import asyncio
-from typing import Tuple, List
+import collections
+from typing import Tuple, List, Optional, Dict
 
 import torch
 
@@ -167,17 +168,14 @@ class RemoteSimulation:
                                       normalize=True)
         return episodes
 
-    def sample_trajectories(self, params=None):
+    def sample_trajectories(self, params: Optional[collections.OrderedDict] = None):
         """
         :param params:
         :return:
         """
         observations, info = self.envs.reset()
-
-        print("Policy device", next(self.policy.parameters()).is_cuda)
-        if params is not None:
-            print("Policy device", next(params.parameters()).is_cuda)
-            print("param type ", type(params))
+        print("Policy device is cuda", next(self.policy.parameters()).is_cuda)
+        print("param type ", type(params))
 
         with torch.no_grad():
             while True:
