@@ -13,7 +13,6 @@ from torch.autograd import Variable
 from torch.distributions import Categorical
 from collections import OrderedDict
 from meta_critics.policies.policy import Policy
-
 from torch.nn.utils import weight_norm as wn
 from torch.nn.utils import remove_weight_norm as wnr
 
@@ -195,9 +194,6 @@ class CategoricalRLPPolicy(Policy, nn.Module):
                           weight=W['layer{0}.weight'.format(self.num_layers)],
                           bias=W['layer{0}.bias'.format(self.num_layers)])
 
-        # normalized_probs = torch.tensor([[0.2, 0.8]], dtype=torch.float32, requires_grad=True)
         logits = torch.nn.functional.softmax(logits, dim=1)
         dist = Categorical(logits=logits)
-        # dist.probs = normalized_probs  # This line solves the issue
-
         return dist

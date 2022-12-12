@@ -15,7 +15,6 @@ create_dir: True
 
 trainer:
   use_wandb: True
-  # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20
   meta_test_freq: 20
@@ -24,7 +23,7 @@ trainer:
   use_discount_gamma: True
   resume: True
   use_gae: True
-  num-workers: 1
+  num-workers: 2
 
 # Policy network
 policy_network:
@@ -35,11 +34,11 @@ trajectory_sampler:
   remap_types: True
 
 meta_task:
+  num_batches: 500
   num_meta_task: 40
   num_trajectory: 20
   num_steps: 1
   fast_lr: 0.1
-  num_batches: 2
   first_order: false
 
 model:

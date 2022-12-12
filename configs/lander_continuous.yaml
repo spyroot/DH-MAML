@@ -37,8 +37,8 @@ trajectory_sampler:
 
 meta_task:
   num_batches: 500       # outer-loop updates
-  num_meta_task:  40     # number of task
-  num_trajectory: 20     # Number of trajectories to sample for each task.
+  num_meta_task:  20     # number of task
+  num_trajectory: 10     # Number of trajectories to sample for each task.
   num_steps: 1           # Number of gradient steps in the inner loop / fast adaptation.
   fast_lr: 0.1           # Step size for each gradient step in the inner loop / fast adaptation.
   first_order: false
