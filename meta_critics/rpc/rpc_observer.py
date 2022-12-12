@@ -226,7 +226,7 @@ class RpcObservers:
                     except Exception as err:
                         print(err)
                         print(traceback.format_exc())
-                        fut.set_exception(err)
+                        #fut.set_exception(err)
                         raise err
                     finally:
                         try:

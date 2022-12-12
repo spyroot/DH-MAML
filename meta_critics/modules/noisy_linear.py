@@ -88,6 +88,7 @@ class NoisyLinear(nn.Linear):
             )
         else:
             self.bias_mu = None
+
         self.reset_parameters()
         self.reset_noise()
 

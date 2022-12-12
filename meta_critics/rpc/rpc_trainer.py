@@ -139,6 +139,7 @@ class DistributedMetaTrainer:
 
         policy_creator = PolicyCreator(self.env, self.spec)
         self.agent_policy, self.is_continuous = policy_creator()
+
         # self.agent_policy.share_memory()
         self.agent_policy.to(self.spec.get('device'))
 

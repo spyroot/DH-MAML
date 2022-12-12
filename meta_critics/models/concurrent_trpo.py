@@ -121,6 +121,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
         # need check why RPC bounce off to CPU sometime.
         self.policy.to(self.device)
+
         logs = {}
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
