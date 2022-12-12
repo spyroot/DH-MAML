@@ -177,7 +177,7 @@ class RpcObservers:
                                                               agent_rref,
                                                               n_steps, task_id))
         except KeyboardInterrupt as kb:
-            print("Observer recieved kb")
+            print("Observer received kb")
             loop.run_until_complete(loop.shutdown_asyncgens())
             raise kb
 
@@ -234,7 +234,8 @@ class RpcObservers:
                         except ValueError as err:
                             pass
 
-            assert len(meta_task) == self.num_task
+            # assert len(meta_task) == self.num_task
+            #
             consumers = []
             for i in range(self.num_task):
                 consumer = loop.create_task(trajectory_consumer(train_queue))
