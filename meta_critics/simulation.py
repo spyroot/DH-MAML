@@ -173,12 +173,13 @@ class RemoteSimulation:
         :param params:
         :return:
         """
-        if torch.cuda.is_available():
-            print(next(self.policy.parameters()).device)
-            assert next(self.policy.parameters()).is_cuda
-            if params is not None:
-                for k, v in params.items():
-                    assert v.is_cuda
+        self.policy.to(self._device)
+        # if torch.cuda.is_available():
+        #     print(next(self.policy.parameters()).device)
+        #     assert next(self.policy.parameters()).is_cuda
+        #     if params is not None:
+        #         for k, v in params.items():
+        #             assert v.is_cuda
 
         observations, info = self.envs.reset()
 
