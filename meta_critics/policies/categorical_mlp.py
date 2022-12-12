@@ -78,6 +78,10 @@ class NoisyLinear(nn.Module):
         self.bias_sigma.data.fill_(self.std_init / math.sqrt(self.bias_sigma.size(0)))
 
     def reset_noise(self):
+        """
+
+        :return:
+        """
         epsilon_in = self._scale_noise(self.in_features)
         epsilon_out = self._scale_noise(self.out_features)
 
@@ -191,10 +195,7 @@ class CategoricalRLPPolicy(Policy, nn.Module):
                           weight=W['layer{0}.weight'.format(self.num_layers)],
                           bias=W['layer{0}.bias'.format(self.num_layers)])
 
-        # wn(logits)
-
         # normalized_probs = torch.tensor([[0.2, 0.8]], dtype=torch.float32, requires_grad=True)
-        print("LOGIT SHAPE", logits.shape)
         logits = torch.nn.functional.softmax(logits, dim=1)
         dist = Categorical(logits=logits)
         # dist.probs = normalized_probs  # This line solves the issue
