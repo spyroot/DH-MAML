@@ -30,7 +30,7 @@ trainer:
 # Policy network
 policy_network:
   hidden_sizes: [64, 64]
-  activation: "relu"
+  activation: "tanh"
 
 trajectory_sampler:
   remap_types: True
