@@ -67,9 +67,12 @@ class LinearFeatureBaseline(nn.Module):
         if torch.all(returns == 0):
             return
 
-        # Remove blank (all-zero) episodes that only exist because episode lengths vary
         flat_mask = episodes.mask.flatten()
         flat_mask_nnz = torch.nonzero(flat_mask)
+
+        # print(episodes.mask)
+        # print("FLAT MASK", flat_mask)
+
         feature_matrix = feature_matrix[flat_mask_nnz].view(-1, self.feature_size)
         returns = returns[flat_mask_nnz].view(-1, 1)
         reg_coeff = self._reg_coefficient
@@ -97,6 +100,7 @@ class LinearFeatureBaseline(nn.Module):
             print("return", feature_matrix)
             raise RuntimeError("Unable to solve the normal equations")
 
+        # print("### BASELINE COPY")
         self.weight.copy_(coeffs.flatten())
 
     def forward(self, episodes: BaseTrajectory):
@@ -104,6 +108,15 @@ class LinearFeatureBaseline(nn.Module):
         :param episodes:
         :return:
         """
+
         features = self._feature(episodes)
+        print("BASELINE forward", features)
+        print("BASELINE feature_size", self.feature_size)
+        print("BASELINE we", self.weight)
+        print("BASELINE view", features.view(-1, self.feature_size))
+        print("BASELINE we", features)
+
         values = torch.mv(features.view(-1, self.feature_size).float(), self.weight)
+        print("BASELINE values forward", values)
+
         return values.view(features.shape[:2])

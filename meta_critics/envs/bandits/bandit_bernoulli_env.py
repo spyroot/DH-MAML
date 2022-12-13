@@ -24,7 +24,7 @@ class BernoulliBanditEnv(BanditEnv, ABC):
     def __init__(self, k: int,
                  max_reward: Optional[int] = 1,
                  out: Optional[EnvType] = EnvType.NdArray,
-                 task=None):
+                 task=None,  **kwargs):
         """
 
         :param k:
@@ -32,11 +32,11 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         :param out:
         :param task:
         """
-        super(BernoulliBanditEnv, self).__init__(k=k, max_reward=max_reward, out=out)
+        super(BernoulliBanditEnv, self).__init__(k=k, max_reward=max_reward, out=out,  **kwargs)
         assert self.k > 0
         assert self.max_reward() > 0
         self.action_space = spaces.Discrete(self.k)
-        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=0, shape=(1,), dtype=np.float32)
 
         if task is None:
             task = {}
@@ -70,7 +70,8 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         :param options:
         :return:
         """
-        return np.random.uniform(size=1).astype(np.float32), {'task': self._task}
+        # return np.random.uniform(size=1).astype(np.float32), {'task': self._task}
+        return np.zeros(1, dtype=np.float32), {'task': self._task}
 
     def step(self, action) -> Tuple[ObsType, float, bool, bool, dict]:
         """Agent takes agent environment return observation, reward, etc
@@ -80,5 +81,6 @@ class BernoulliBanditEnv(BanditEnv, ABC):
         assert self.action_space.contains(action)
         mean = self._means[action]
         reward = self.np_random.binomial(1, mean)
-        observation = np.random.uniform(size=1).astype(np.float32)
+        observation = np.zeros(1, dtype=np.float32)
+        # observation = np.random.uniform(size=1).astype(np.float32)
         return observation, reward, True, False, {'task': self._task}

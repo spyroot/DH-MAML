@@ -19,6 +19,7 @@ from torch.nn.utils import remove_weight_norm as wnr
 
 def weight_init(module):
     if isinstance(module, nn.Linear):
+        print("Xavier called")
         nn.init.xavier_uniform_(module.weight)
         module.bias.data.zero_()
 

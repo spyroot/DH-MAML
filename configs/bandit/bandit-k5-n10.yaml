@@ -5,6 +5,16 @@ log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
 create_dir True:
 
+env-args:
+  k: 10
+  render_mode: None
+#  low: -0.5
+#  high: 0.5
+
+trajectory_sampler:
+  reward_dtype: torch.float32
+  remap_types: False
+
 trainer:
   sampler: distributed_rpc
   save_freq: 100
@@ -15,9 +25,6 @@ trainer:
   use_discount_gamma: True
   resume: True
   num-workers: 1
-
-trajectory_sampler:
-  remap_types: False
 
 # Policy network
 policy_network:

@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.distributions.kl import kl_divergence
 from torch.nn.utils.convert_parameters import parameters_to_vector
-
+from torch.distributions import Distribution
 from meta_critics.policies.policy import Policy
 from meta_critics.running_spec import RunningSpec
 from meta_critics.trajectory.advantage_episode import AdvantageBatchEpisodes
@@ -79,7 +79,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                        valid_data,
                        detached_policy=None,
                        reduction='mean',
-                       debug=True) -> Tuple[torch.Tensor, torch.Tensor, nn.Module, torch.Tensor]:
+                       debug=True) -> Tuple[torch.Tensor, torch.Tensor, Distribution, torch.Tensor]:
         """
         TRPO surrogate loss
         :param debug:  mainly if we need dump debug data
@@ -92,9 +92,17 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         """
         is_first_order = (detached_policy is not None) or self.first_order
         adapted_params, inner_losses = self.adapt(train_data, first_order=is_first_order)
+        #
+        # print("Adapted")
+        # print("------------------------------------------------")
+        # for k, v in adapted_params.items():
+        #     print(v)
+        # print("------------------------------------------------")
+        # print("Adapted")
 
         with torch.set_grad_enabled(detached_policy is None):
             valid_episodes = valid_data
+
             new_policy = self.policy(valid_episodes.observations.float(), W=adapted_params)
 
             if detached_policy is None:
@@ -109,7 +117,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
 
         if reduction == 'mean':
             return loss_weighted.mean(), kls.mean(), detached_policy, inner_losses
-        return loss_weighted, kls, detached_policy, inner_losses
+        return loss_weighted.mean(), kls.mean(), detached_policy, inner_losses
 
     async def step(self, train_futures, valid_futures, debug=True):
         """
@@ -126,6 +134,15 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         logs = {}
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
+
+        params = None
+        for i in range(0, len(data)):
+            t, v = data[i]
+            loss = self.reinforce_loss(t[0], W=params)
+            params = self.policy.update_params(loss,
+                                               params=params,
+                                               step_size=0.2,
+                                               first_order=True)
 
         old_losses = torch.empty(len(data), device=self.device)
         # old_losses.requires_grad_()
@@ -147,14 +164,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         logs["old_loss"] = old_losses
         logs["old_kl"] = old_kl
 
-        # print(f"OLD loss device {old_losses.device}")
-        # print(f"OLD old_kl device {old_kl.device}")
-        #
-        # for p in self.policy.parameters():
-        #     print(f"param loss device {p.device}")
-
         try:
-
             grads = torch.autograd.grad(old_losses, list(self.policy.parameters()), retain_graph=True)
             grads = parameters_to_vector(grads)
 

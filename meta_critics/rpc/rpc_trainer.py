@@ -439,7 +439,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     :return: Nothing
     """
     os.environ['MASTER_ADDR'] = '127.0.0.1'
-    os.environ['MASTER_PORT'] = '29517'
+    os.environ['MASTER_PORT'] = '29519'
     os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     worker_name = f"worker{rank}"
 

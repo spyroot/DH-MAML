@@ -56,6 +56,8 @@ class Policy(nn.Module):
 
         t = list(params.values())
         grads = torch.autograd.grad(loss, t, create_graph=not first_order)
+        # for v in grads:
+        #     print(v)
 
         updated_params = OrderedDict()
         for (name, param), grad in zip(params.items(), grads):

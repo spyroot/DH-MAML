@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from distutils.dist import Distribution
+
 import torch
 from torch.distributions import Categorical, Independent, Normal, LogNormal
 
@@ -29,7 +33,7 @@ def detach_module(module, keep_requires_grad=False):
         detach_module(module._modules[module_key], keep_requires_grad=keep_requires_grad)
 
 
-def detach_dist_from_policy(agent_policy, device):
+def detach_dist_from_policy(agent_policy, device) -> Independent | Categorical | LogNormal | Normal:
     """
     :param device:
     :param agent_policy:

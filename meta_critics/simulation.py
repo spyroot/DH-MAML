@@ -11,6 +11,7 @@ from typing import Tuple, List, Optional, Dict
 
 import torch
 
+from meta_critics.base_trainer.torch_tools.tensor_tools import string_to_torch_remaping
 from meta_critics.envs.env_creator import env_creator
 from meta_critics.ioutil.term_util import print_red
 from meta_critics.policies.policy import Policy
@@ -142,6 +143,7 @@ class RemoteSimulation:
             train_episodes = self.create_episodes(params=params)
             await queue.put({"train": train_episodes})
             loss = reinforce_loss(self.policy, train_episodes, W=params)
+            print("renforce loss", loss)
             params = self.policy.update_params(loss,
                                                params=params,
                                                step_size=self.fast_lr,
@@ -155,11 +157,21 @@ class RemoteSimulation:
         :param params:
         :return:
         """
+
+        if self.spec.contains("reward_dtype", "trajectory_sampler"):
+            reward_dtype = self.spec.get("reward_dtype", "trajectory_sampler")
+            reward_dtype = string_to_torch_remaping[reward_dtype]
+
+        if self.spec.contains("action_dtype", "trajectory_sampler"):
+            action_dtype = self.spec.get("action_dtype", "trajectory_sampler")
+            action_dtype = string_to_torch_remaping[action_dtype]
+
         remap_dtype = self.spec.get("remap_types", "trajectory_sampler")
         episodes = AdvantageBatchEpisodes(batch_size=self.num_traj,
                                           gamma=self.gamma,
                                           device=self._device,
-                                          remap_dtype=remap_dtype)
+                                          remap_dtype=remap_dtype,
+                                          reward_dtype=reward_dtype)
 
         for item in self.sample_trajectories(params=params):
             episodes.append(*item)

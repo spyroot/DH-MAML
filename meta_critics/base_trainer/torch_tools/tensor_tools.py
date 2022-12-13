@@ -18,6 +18,17 @@ numpy_to_torch_remaping = {
     np.complex128: torch.complex128,
 }
 
+string_to_torch_remaping = {
+    "torch.bool": torch.bool,
+    "torch.uint8": torch.uint8,
+    "torch.int8": torch.int8,
+    "torch.int16": torch.int16,
+    "torch.int32": torch.int32,
+    "torch.int64": torch.int64,
+    "torch.float32": torch.float32,
+    "torch.float64": torch.float32,
+}
+
 
 numpy_to_torch_dtype_dict = {
     np.bool: torch.bool,

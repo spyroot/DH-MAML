@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict, Any
 
 import gym
 import numpy as np
@@ -27,14 +27,20 @@ from meta_critics.envs.env_types import EnvType
 class BanditEnv(gym.Env, ABC):
     def __init__(self, k: int,
                  max_reward: Optional[int] = 1,
-                 out: Optional[EnvType] = EnvType.NdArray):
+                 out: Optional[EnvType] = EnvType.NdArray,
+                 **kwargs):
         super(BanditEnv, self).__init__()
 
         self.k = k
         self._max_reward = max_reward
+        self.low = 0
+        self.high = 1
+
         self.action_space = spaces.Discrete(self.k)
         self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.out = out
+        self.metadata: Dict[str, Any] = {"render_modes": []}
+        render_mode: Optional[str] = None
 
     def max_reward(self) -> int:
         """Max rewards per arm for example Bernoulli it 1.0
@@ -89,6 +95,6 @@ class BanditEnv(gym.Env, ABC):
         :return:
         """
         super().reset(seed=seed)
-        if self.render_mode == "human":
-            self.render()
+        # if self.render_mode == "human":
+        #     self.render()
         return self.observation_space.sample(), {}

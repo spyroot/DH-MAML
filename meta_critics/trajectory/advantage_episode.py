@@ -27,6 +27,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
                  mask=None,
                  debug=False,
                  remap_dtype=False,
+                 reward_dtype: Optional[Any] = torch.float32,
                  ):
         """
 
@@ -41,9 +42,10 @@ class AdvantageBatchEpisodes(BaseTrajectory):
             print("Creating from args")
 
         # self.lock = lock
-        self._reward_dtype = None
         self._action_dtype = None
         self._observation_dtype = None
+        self._reward_dtype = reward_dtype
+
         self.max_len = None
         self.gamma = gamma
         self.is_copy = False
@@ -73,6 +75,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
 
         if self._actions is not None:
             self._action_shape = self._actions.shape[2:]
+
         if self._observations is not None:
             self._observation_shape = self._observations.shape[2:]
 
@@ -137,15 +140,28 @@ class AdvantageBatchEpisodes(BaseTrajectory):
 
         return x
 
+    # def bootstrap(self):
+    # with torch.no_grad():
+    #     next_value = agent.get_value(next_obs).reshape(1, -1)
+    #     advantages = torch.zeros_like(rewards).to(device)
+    #     lastgaelam = 0
+    #     for t in reversed(range(args.num_steps)):
+    #         if t == args.num_steps - 1:
+    #             nextnonterminal = 1.0 - next_done
+    #             nextvalues = next_value
+    #         else:
+    #             nextnonterminal = 1.0 - dones[t + 1]
+    #             nextvalues = values[t + 1]
+    #         delta = rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
+    #         advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
+    #     returns = advantages + values
     @property
     def advantages(self):
         """
         :return:
         """
         if self._advantages is None:
-            raise ValueError('The advantages have not been computed. Call the '
-                             'function `episodes.compute_advantages(baseline)` '
-                             'to compute and store the advantages in `episodes`.')
+            raise ValueError('The advantages have not been computed. .')
         return self._advantages
 
     @property
@@ -172,21 +188,28 @@ class AdvantageBatchEpisodes(BaseTrajectory):
         :return:
         """
         # Compute the values based on the baseline
-        assert self._advantages is None
+        # assert self._advantages is None
         values = baseline(self).detach().clone()
         values = F.pad(values * self.mask, (0, 0, 0, 1))
 
+        print("REAWRDS ", self.rewards)
+
         deltas = self.rewards + self.gamma * values[1:] - values[:-1]
+        print("DELTAS ", deltas)
         self._advantages = torch.zeros_like(self.rewards, device=self.device)
+        print("GAE BAE SIZE", self.batch_size)
+
         gae = torch.zeros((self.batch_size,), device=self.device, dtype=self._reward_dtype)
 
         for i in range(torch.max(self._lengths) - 1, -1, -1):
             gae = gae * self.gamma * gae_lambda + deltas[i]
+            print("GAE ", gae)
             self._advantages[i] = gae
 
         if normalize:
             self._advantages = weighted_normalize(self._advantages, lengths=self.lengths)
 
+        print("ADVATANGE", self._advantages)
         return self._advantages
 
     @property
@@ -305,6 +328,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
                 else:
                     dt: np.dtype = np.dtype(action[-1])
                 self._action_dtype = type_remap[dt.type]
+
             if self._reward_dtype is None:
                 dt: np.dtype = np.dtype(reward)
                 self._reward_dtype = type_remap[dt.type]

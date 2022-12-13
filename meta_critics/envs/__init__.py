@@ -5,6 +5,7 @@
 # we can differentiate truncated state.
 from gym.envs.registration import register
 from meta_critics.envs.navigation.nav import Navigation
+from meta_critics.envs.bandits.bandit_bernoulli_env import *
 
 register(
         'turbulencelander-v0',
@@ -12,12 +13,21 @@ register(
         kwargs={'entry_point': 'meta_critics.envs.lander.lander:TurbulenceLunarLander'}
 )
 
+# for k in [5, 10, 50]:
+#     register(
+#             'Bandit-K{0}-v0'.format(k),
+#             entry_point='meta_critics.wrappers.bandits_wrapper:bandits_wrapper',
+#             kwargs={'entry_point': 'meta_critics.envs.bandits.bandit_bernoulli_env:BernoulliBanditEnv'},
+#     )
+
+
 for k in [5, 10, 50]:
     register(
             'Bandit-K{0}-v0'.format(k),
             entry_point='meta_critics.envs.bandits.bandit_bernoulli_env:BernoulliBanditEnv',
             kwargs={'k': k}
     )
+
 
 for k in [5, 10, 50]:
     register(
