@@ -111,7 +111,6 @@ class AntVelEnv(AntEnv, MujocoEnv):
         if task is None:
             task = {}
         super(AntVelEnv, self).__init__(self,
-                                        xml_file="ant.xml",
                                         ctrl_cost_weight=0.5,
                                         use_contact_forces=False,
                                         contact_cost_weight=5e-4,
