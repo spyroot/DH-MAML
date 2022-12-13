@@ -181,11 +181,13 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, step: int,
+    async def meta_test(self,
+                        step: int,
                         metric_receiver: Optional[MetricReceiver] = None,
                         is_meta_test: Optional[bool] = False,
                         skip_wandb: Optional[bool] = False,
-                        flash_io: Optional[bool] = False) -> None:
+                        flash_io: Optional[bool] = False,
+                        num_meta_test: Optional[bool] = 10) -> None:
         """
         Perform a meta-test.  It loads new policy from saved model and test on a new environment.
         Each environment created from own seed. So agent seen environment.
@@ -201,8 +203,11 @@ class DistributedMetaTrainer:
         print_green("Starting meta test.")
         test_freq = self.spec.get('meta_test_freq', 'trainer')
 
-        if step == 0 or (step % test_freq != 0):
-            return
+        if not is_meta_test:
+            if step == 0 or (step % test_freq != 0):
+                return
+        else:
+            step = 0
 
         if self.tf_writer is None:
             print("Error: tensorboard is none.")
@@ -235,7 +240,7 @@ class DistributedMetaTrainer:
 
         try:
             from tqdm.asyncio import trange, tqdm
-            tqdm_iter = tqdm(range(1, 11),
+            tqdm_iter = tqdm(range(1, num_meta_test),
                              desc=f"Meta-test in progress, dev: {self.spec.get('device')},")
 
             # update tbar
@@ -473,8 +478,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             if spec.is_test():
                 await meta_trainer.start()
                 num_batches = spec.get('num_batches', 'meta_task')
-                for i in range(0, 10):
-                    await meta_trainer.meta_test(i, skip_wandb=True, is_meta_test=True)
+                await meta_trainer.meta_test(skip_wandb=True, is_meta_test=True)
                 await meta_trainer.stop()
 
         else:
