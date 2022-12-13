@@ -33,21 +33,21 @@ policy_network:
   activation: "tanh"
 
 trajectory_sampler:
-  remap_types: True
-
+  remap_types: False
 
 meta_task:
-  num_batches: 500       # outer-loop updates
-  num_meta_task:  20     # number of task
-  num_trajectory: 10     # Number of trajectories to sample for each task.
-  num_steps: 1           # Number of gradient steps in the inner loop / fast adaptation.
-  fast_lr: 0.1           # Step size for each gradient step in the inner loop / fast adaptation.
+  num_meta_test: 10
+  num_meta_task: 40     # number of meta task in batch
+  num_trajectory: 20   # Number of trajectories to sample for each task.
+  num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.
+  fast_lr: 0.1          # Step size for each gradient step in the inner loop / fast adaptation.
+  num_batches: 500      # outer-loop updates
   first_order: false
 
 model:
   name: trpo
   model_type: ConcurrentMamlTRPO  # model type.
-  max_kl: 1.0e-2             #Size of the trust-region
+  max_kl: 1.0e-2             # trpo max kl term
   cg_iters: 10               # Number of iterations of Conjugate Gradient.
   cg_damping: 1.0e-5         # Value of the damping in Conjugate Gradient.
   ls_max_steps: 15           # Maximum number of steps in the line search.
