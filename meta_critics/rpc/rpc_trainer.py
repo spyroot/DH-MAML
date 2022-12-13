@@ -265,8 +265,8 @@ class DistributedMetaTrainer:
                 _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
                 _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_tasks_val]
 
-                train_returns.append(_meta_tasks_train.detach().cpu().numpy())
-                valid_returns.append(_meta_tasks_val.detach().cpu().numpy())
+                train_returns.append(to_numpy(_meta_tasks_train))
+                valid_returns.append(to_numpy(_meta_tasks_val))
 
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
