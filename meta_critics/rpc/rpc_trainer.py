@@ -265,7 +265,7 @@ class DistributedMetaTrainer:
 
             logs = {'tasks': []}
             train_returns, valid_returns = [], []
-            async for tqdm_step in tqdm_iter:
+            async for _ in tqdm_iter:
 
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
