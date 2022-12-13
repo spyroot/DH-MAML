@@ -17,6 +17,6 @@ def lander_wrapper(entry_point, **kwargs):
     env_cls = load(entry_point)
     env = env_cls(**kwargs)
 
-    # env = NormalizedActionWrapper(env, scale=normalization_scale)
+    env = NormalizedActionWrapper(env, scale=normalization_scale)
     env = TimeLimit(env, max_episode_steps=max_episode_steps)
     return env
