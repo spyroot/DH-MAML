@@ -215,12 +215,10 @@ class RemoteSimulation:
                     break
                 if self.envs.is_done():
                     print("done")
-
                     break
                 observations_tensor = torch.from_numpy(observations)
                 if observations_tensor is None:
                     continue
-
                 # if self.debug:
                 # if torch.all(observations_tensor == 0.0):
                 # if self.debug:
