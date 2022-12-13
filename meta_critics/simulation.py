@@ -158,20 +158,29 @@ class RemoteSimulation:
         :return:
         """
 
+        reward_dtype = None
         if self.spec.contains("reward_dtype", "trajectory_sampler"):
             reward_dtype = self.spec.get("reward_dtype", "trajectory_sampler")
             reward_dtype = string_to_torch_remaping[reward_dtype]
 
+        action_dtype = None
         if self.spec.contains("action_dtype", "trajectory_sampler"):
             action_dtype = self.spec.get("action_dtype", "trajectory_sampler")
             action_dtype = string_to_torch_remaping[action_dtype]
+
+        observations_dtype = None
+        if self.spec.contains("action_dtype", "trajectory_sampler"):
+            observations_dtype = self.spec.get("observations_dtype", "trajectory_sampler")
+            observations_dtype = string_to_torch_remaping[observations_dtype]
 
         remap_dtype = self.spec.get("remap_types", "trajectory_sampler")
         episodes = AdvantageBatchEpisodes(batch_size=self.num_traj,
                                           gamma=self.gamma,
                                           device=self._device,
                                           remap_dtype=remap_dtype,
-                                          reward_dtype=reward_dtype)
+                                          reward_dtype=reward_dtype,
+                                          action_dtype=action_dtype,
+                                          observations_dtype=observations_dtype)
 
         for item in self.sample_trajectories(params=params):
             episodes.append(*item)

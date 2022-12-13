@@ -28,6 +28,8 @@ class AdvantageBatchEpisodes(BaseTrajectory):
                  debug=False,
                  remap_dtype=False,
                  reward_dtype: Optional[Any] = torch.float32,
+                 action_dtype: Optional[Any] = torch.float32,
+                 observations_dtype: Optional[Any] = torch.float32,
                  ):
         """
 
@@ -42,18 +44,15 @@ class AdvantageBatchEpisodes(BaseTrajectory):
             print("Creating from args")
 
         # self.lock = lock
-        self._action_dtype = None
-        self._observation_dtype = None
+        self._action_dtype = action_dtype
         self._reward_dtype = reward_dtype
+        self._observation_dtype = observations_dtype
 
         self.max_len = None
         self.gamma = gamma
         self.is_copy = False
         self.is_full = False
         self.is_remap_floats = remap_dtype
-
-        # action_shape = action_shape
-        # observation_shape = observation_shape
 
         self.batch_size = batch_size
         self.device = device
@@ -66,10 +65,10 @@ class AdvantageBatchEpisodes(BaseTrajectory):
             self.is_copy = True
 
         self._observations = observations
+        self._advantages = advantages
         self._actions = actions
         self._rewards = rewards
         self._returns = returns
-        self._advantages = advantages
         self._lengths = lengths
         self._mask = mask
 
