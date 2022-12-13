@@ -111,15 +111,15 @@ class AntVelEnv(AntEnv, MujocoEnv):
         if task is None:
             task = {}
         super(AntVelEnv, self).__init__(self,
-                                        ctrl_cost_weight=0.5,
-                                        use_contact_forces=False,
-                                        contact_cost_weight=5e-4,
-                                        healthy_reward=1.0,
-                                        terminate_when_unhealthy=True,
-                                        healthy_z_range=(0.2, 1.0),
-                                        contact_force_range=(-1.0, 1.0),
-                                        reset_noise_scale=0.1,
-                                        exclude_current_positions_from_observation=True,
+                                        # ctrl_cost_weight=0.5,
+                                        # use_contact_forces=False,
+                                        # contact_cost_weight=5e-4,
+                                        # healthy_reward=1.0,
+                                        # terminate_when_unhealthy=True,
+                                        # healthy_z_range=(0.2, 1.0),
+                                        # contact_force_range=(-1.0, 1.0),
+                                        # reset_noise_scale=0.1,
+                                        # exclude_current_positions_from_observation=True,
                                         **kwargs)
         self._task = task
         self.low = low
