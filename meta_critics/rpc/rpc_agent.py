@@ -296,11 +296,14 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 print("Error in metric dequeue:", exp)
                 print(traceback.print_exc())
             finally:
-                if not trainer_metric_queue.empty():
-                    trainer_metric_queue.task_done()
-
                 if flush_io:
                     writer.flush()
+
+                try:
+                    if not trainer_metric_queue.empty():
+                        trainer_metric_queue.task_done()
+                except ValueError as ve:
+                    pass
 
     @staticmethod
     async def trainer_consumer(self_agent: GenericRpcAgent,

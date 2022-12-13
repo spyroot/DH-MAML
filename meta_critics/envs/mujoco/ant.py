@@ -23,7 +23,6 @@ class AntEnv(AntEnv_):
     @property
     def action_scaling(self):
         """
-
         :return:
         """
         if (not hasattr(self, 'action_space')) or (self.action_space is None):
@@ -59,7 +58,6 @@ class AntEnv(AntEnv_):
 
     def render(self, mode='human'):
         """
-
         :param mode:
         :return:
         """
@@ -92,7 +90,11 @@ class AntVelEnv(AntEnv):
         (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
     """
 
-    def __init__(self, task={}, low=0.0, high=3.0):
+    def __init__(self, task=None, low=0.0, high=3.0):
+
+        if task is None:
+            task = {}
+
         self._task = task
         self.low = low
         self.high = high
@@ -156,7 +158,9 @@ class AntDirEnv(AntEnv):
         (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
     """
 
-    def __init__(self, task={}):
+    def __init__(self, task=None):
+        if task is None:
+            task = {}
         self._task = task
         self._goal_dir = task.get('direction', 1)
         self._action_scaling = None

@@ -118,13 +118,23 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
     """
     def __init__(self, task=None):
+        """
+
+        :param task:
+        """
         if task is None:
             task = {}
+
         self._task = task
         self._goal_dir = task.get('direction', 1)
         super(HalfCheetahDirEnv, self).__init__()
 
     def step(self, action):
+        """
+
+        :param action:
+        :return:
+        """
         x_pos_before = self.data.qpos[0]
         self.do_simulation(action, self.frame_skip)
         x_pos_after = self.data.qpos[0]
@@ -139,7 +149,7 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         infos = dict(reward_forward=forward_reward,
                      reward_ctrl=-ctrl_cost,
                      task=self._task)
-        return observation, reward, done, infos
+        return observation, reward, done, False, infos
 
     def sample_tasks(self, num_tasks):
         directions = 2 * self.np_random.binomial(1, p=0.5, size=(num_tasks,)) - 1
