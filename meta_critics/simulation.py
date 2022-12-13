@@ -170,7 +170,7 @@ class RemoteSimulation:
             action_dtype = string_to_torch_remaping[action_dtype]
 
         observations_dtype = None
-        if self.spec.contains("action_dtype", "trajectory_sampler"):
+        if self.spec.contains("observations_dtype", "trajectory_sampler"):
             observations_dtype = self.spec.get("observations_dtype", "trajectory_sampler")
             observations_dtype = string_to_torch_remaping[observations_dtype]
 
