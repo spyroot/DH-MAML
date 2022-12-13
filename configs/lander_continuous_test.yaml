@@ -12,6 +12,7 @@ env-args:
 # if we need remap float32 to float64 etc.
 trajectory_sampler:
   reward_dtype: torch.float32
+  observation_dtype: torch.float32
   remap_types: False
 
 
