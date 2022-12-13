@@ -211,14 +211,13 @@ class RemoteSimulation:
             counter = 0
             while True:
                 if self.envs.is_terminated() or self.envs.is_truncated():
-                    print("terminated")
                     break
                 if self.envs.is_done():
-                    print("done")
                     break
                 observations_tensor = torch.from_numpy(observations)
                 if observations_tensor is None:
-                    continue
+                    break
+                    # continue
                 # if self.debug:
                 # if torch.all(observations_tensor == 0.0):
                 # if self.debug:

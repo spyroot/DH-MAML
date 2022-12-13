@@ -129,7 +129,7 @@ class BaseSyncVectorEnv2(SyncVectorEnv, ABC):
         rewards = np.zeros((num_actions,), dtype=np.float_)
 
         for i, env in enumerate(self.envs):
-            if self._terminateds[i] or self._truncateds[i] or env.truncated or env.terminated:
+            if self._terminateds[i] or self._truncateds[i]:
                 continue
 
             action = _action[j]

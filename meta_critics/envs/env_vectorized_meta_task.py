@@ -163,7 +163,7 @@ class BaseVecMetaTaskEnv(VectorizedMetaTask, ABC):
 
         terminated_offset = 0
         for i, env in enumerate(self.envs):
-            if self._terminateds[i] or self._truncateds[i] or env.truncated or env.terminated:
+            if self._terminateds[i] or self._truncateds[i]:
                 continue
 
             action = _action[j]
