@@ -208,6 +208,7 @@ class RemoteSimulation:
         observations, info = self.envs.reset()
 
         with torch.no_grad():
+            counter = 0
             while True:
                 if self.envs.is_terminated() or self.envs.is_truncated():
                     print("terminated")
@@ -229,7 +230,8 @@ class RemoteSimulation:
                 actions_tensor = self.policy(observations_tensor.float(), W=params).sample()
                 actions = actions_tensor.cpu().numpy()
                 new_observations, rewards, _, _, infos = self.envs.step(actions)
-                print("yield batch id")
+                print(f"yield batch {infos['batch_ids']}, counter={counter}")
+                counter += 1
                 batch_ids = infos['batch_ids']
 
                 yield observations, actions, rewards, batch_ids
