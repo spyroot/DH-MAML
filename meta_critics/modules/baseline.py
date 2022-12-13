@@ -100,7 +100,6 @@ class LinearFeatureBaseline(nn.Module):
             print("return", feature_matrix)
             raise RuntimeError("Unable to solve the normal equations")
 
-        # print("### BASELINE COPY")
         self.weight.copy_(coeffs.flatten())
 
     def forward(self, episodes: BaseTrajectory):
@@ -110,13 +109,5 @@ class LinearFeatureBaseline(nn.Module):
         """
 
         features = self._feature(episodes)
-        print("BASELINE forward", features)
-        print("BASELINE feature_size", self.feature_size)
-        print("BASELINE we", self.weight)
-        print("BASELINE view", features.view(-1, self.feature_size))
-        print("BASELINE we", features)
-
         values = torch.mv(features.view(-1, self.feature_size).float(), self.weight)
-        print("BASELINE values forward", values)
-
         return values.view(features.shape[:2])
