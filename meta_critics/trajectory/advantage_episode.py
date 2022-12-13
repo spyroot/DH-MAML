@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 from meta_critics.base_trainer.torch_tools.torch_utils import weighted_normalize
 from meta_critics.base_trainer.torch_tools.tensor_tools import numpy_to_torch_dtype_dict, numpy_to_torch_remaping
+from meta_critics.ioutil.term_util import print_red
 from meta_critics.trajectory.base_trajectory import BaseTrajectory
 from meta_critics.named_episode import NamedEpisode
 
@@ -179,7 +180,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
 
         return self._returns
 
-    def recompute_advantages(self, baseline, gae_lambda=1.0, normalize=True):
+    def recompute_advantages(self, baseline, gae_lambda=1.0, normalize=True, debug=False):
         """
         :param baseline:
         :param gae_lambda:
@@ -190,25 +191,25 @@ class AdvantageBatchEpisodes(BaseTrajectory):
         # assert self._advantages is None
         values = baseline(self).detach().clone()
         values = F.pad(values * self.mask, (0, 0, 0, 1))
-
-        print("REAWRDS ", self.rewards)
+        if debug:
+            print_red(f"reward tensor {self.rewards}")
 
         deltas = self.rewards + self.gamma * values[1:] - values[:-1]
-        print("DELTAS ", deltas)
         self._advantages = torch.zeros_like(self.rewards, device=self.device)
-        print("GAE BAE SIZE", self.batch_size)
-
         gae = torch.zeros((self.batch_size,), device=self.device, dtype=self._reward_dtype)
+        if debug:
+            print_red(f"gae {gae}")
 
         for i in range(torch.max(self._lengths) - 1, -1, -1):
             gae = gae * self.gamma * gae_lambda + deltas[i]
-            print("GAE ", gae)
             self._advantages[i] = gae
 
         if normalize:
             self._advantages = weighted_normalize(self._advantages, lengths=self.lengths)
 
-        print("ADVATANGE", self._advantages)
+        if debug:
+            print_red(f"final advantage vector {self._advantages}")
+
         return self._advantages
 
     @property
