@@ -24,7 +24,7 @@ from gym.envs.mujoco.ant_v4 import AntEnv as AntEnv_
 from gym.envs.mujoco import MujocoEnv
 
 
-class AntEnv(AntEnv_, MujocoEnv):
+class AntEnv(AntEnv_):
     metadata = {
         "render_modes": [
             "human",
@@ -88,7 +88,7 @@ class AntEnv(AntEnv_, MujocoEnv):
             self._get_viewer(mode).render()
 
 
-class AntVelEnv(AntEnv, MujocoEnv):
+class AntVelEnv(AntEnv):
     """Ant environment with target velocity, as described in [1]. The 
     code is adapted from
     https://github.com/cbfinn/maml_rl/blob/9c8e2ebd741cb0c7b8bf2d040c4caeeb8e06cc95/rllab/envs/mujoco/ant_env_rand.py
