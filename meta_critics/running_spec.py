@@ -164,7 +164,7 @@ class RunningSpec:
             RunningSpecError(f"You don't have access to write {self._current_dir}.")
 
         if not os.path.exists(p):
-            print_green(f"Creating directory {p}")
+            print(f"Creating directory {p}")
             os.makedirs(p, exist_ok=True)
 
         # register internal attr
