@@ -181,7 +181,10 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, metric_receiver: MetricReceiver, step: int, is_meta_test=False, skip_wandb=False, flash_io=False) -> None:
+    async def meta_test(self, metric_receiver: MetricReceiver, step: int,
+                        is_meta_test: Optional[bool] = False,
+                        skip_wandb: Optional[bool] = False,
+                        flash_io: Optional[bool] = False) -> None:
         """
         Perform a meta-test.  It loads new policy from saved model and test on a new environment.
         Each environment created from own seed. So agent seen environment.
