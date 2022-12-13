@@ -121,6 +121,9 @@ class AntVelEnv(AntEnv, MujocoEnv):
                                         # reset_noise_scale=0.1,
                                         # exclude_current_positions_from_observation=True,
                                         **kwargs)
+        if task is not None:
+            task.pop(task)
+
         self._task = task
         self.low = low
         self.high = high
