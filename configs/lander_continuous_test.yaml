@@ -13,6 +13,8 @@ env-args:
 trajectory_sampler:
   remap_types: True
 
+
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/lander_continuous"
 model_dir: "~/meta_critics/models/lander_continuous"
 create_dir: True

@@ -10,7 +10,6 @@ wandb:
   entity: spyroot
   project: dh-maml
 
-
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/antvel"
 model_dir: "~/meta_critics/models/antvel"

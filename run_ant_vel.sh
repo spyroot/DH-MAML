@@ -1,1 +1,1 @@
-python main.py --config configs/ant-vel --train
+python main.py --config configs/ant-vel.yaml --train

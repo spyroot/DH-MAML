@@ -8,6 +8,7 @@ wandb:
   entity: spyroot
   project: dh-maml
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/lander_discrete"
 model_dir: "~/meta_critics/models/lander_discrete"
 create_dir: True
