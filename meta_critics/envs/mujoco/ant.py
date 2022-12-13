@@ -57,7 +57,7 @@ class AntEnv(AntEnv_):
             self.data.qpos.flat.copy(),
             self.data.qvel.flat.copy(),
             np.clip(self.data.cfrc_ext, -1, 1).flat,
-            self.data.get_body_xmat("torso").flat,
+            self.data.self.get_body_com("torso").flat,
             self.get_body_com("torso").flat,
         ]).astype(np.float32).flatten()
 
