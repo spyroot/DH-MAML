@@ -159,7 +159,7 @@ class DistributedMetaTrainer:
         self.meta_learner = ConcurrentMamlTRPO(self.agent_policy, self.spec)
 
         if self.spec.contains("log_dir"):
-            self.log_dir = resole_primary_dir(self.spec.get("log_dir"))
+            self.log_dir = resole_primary_dir(self.spec.get("log_dir"), create_if_needed=True)
 
         print(f"Tensorboard log location. {self.log_dir}")
         self.tf_writer = SummaryWriter(log_dir=self.log_dir)
