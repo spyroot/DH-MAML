@@ -6,6 +6,7 @@
 from gym.envs.registration import register
 from meta_critics.envs.navigation.nav import Navigation
 from meta_critics.envs.bandits.bandit_bernoulli_env import *
+from meta_critics.envs.mujoco.ant import *
 
 register(
         'turbulencelander-v0',
