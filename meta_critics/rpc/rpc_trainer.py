@@ -70,16 +70,16 @@ def resole_primary_dir(path_to_dir: str, create_if_needed: Optional[bool] = Fals
     if not log_file_path.exists():
         print(f"{log_dir} not found.")
         if create_if_needed:
-            from datetime import datetime
-            current_dateTime = datetime.now()
-            suffix = f"{current_dateTime.month}_{current_dateTime.day}_{current_dateTime.hour}"
-            os.makedirs(log_file_path / suffix, exist_ok=True)
+            os.makedirs(log_file_path, exist_ok=True)
         else:
             raise FileNotFoundError(f"Error: dir {log_dir} not found.")
 
     if not log_file_path.is_dir():
         print(f"{log_dir} must be directory.")
         raise FileNotFoundError(f"Error {log_dir} must be directory not a file.")
+
+    # if create_if_needed:
+    #     return f"{str(log_file_path)}/{suffix}"
 
     return str(log_file_path)
 
@@ -162,10 +162,13 @@ class DistributedMetaTrainer:
         self.meta_learner = ConcurrentMamlTRPO(self.agent_policy, self.spec)
 
         if self.spec.contains("log_dir"):
-
-
-            self.log_dir = resole_primary_dir(self.spec.get("log_dir"), create_if_needed=True)
-
+            from datetime import datetime
+            current_dateTime = datetime.now()
+            suffix = f"{current_dateTime.month}_{current_dateTime.day}_{current_dateTime.hour}"
+            _log_dir = self.spec.get("log_dir")
+            _log_dir_timestamp = f"{_log_dir}/{suffix}"
+            self.log_dir = resole_primary_dir(_log_dir_timestamp, create_if_needed=True)
+            self.spec.update("log_dir", self.log_dir)
         print(f"Tensorboard log location. {self.log_dir}")
         self.tf_writer = SummaryWriter(log_dir=self.log_dir)
 
