@@ -2,7 +2,7 @@ experiment_name: "antdir"
 env_name: "AntDir-v4"
 env-args:
   max_episode_steps: 100
-  continuous: True
+#  continuous: True
 
 wandb:
   entity: spyroot
