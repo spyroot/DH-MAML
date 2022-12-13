@@ -8,10 +8,12 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import torch
 import torch.distributed.rpc as rpc
 from torch.utils.tensorboard import SummaryWriter
 
+from meta_critics.base_trainer.internal.utils import to_numpy
 from meta_critics.ioutil.term_util import print_red, print_green
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
@@ -258,43 +260,22 @@ class DistributedMetaTrainer:
             train_returns, valid_returns = [], []
             async for _ in tqdm_iter:
                 tasks = await self.agent.sample_tasks()
-                _, meta_tasks = await simulation.meta_tests(tasks)
+                meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
 
-                rewards_sum = 0
-                rewards_std = 0
-                rewards_mean = 0
-                total_task = 0
+                train_returns.append(to_numpy([episode.rewards.sum(dim=0) for episode in meta_tasks_val]))
+                valid_returns.append(to_numpy([episode.rewards.sum(dim=0) for episode in meta_task_train]))
 
-                # to_numpy([episode.rewards.sum(dim=0) for episode in episodes])
-                #
-
-                # logs['tasks'].extend(tasks)
-                # logs['tasks'].extend(tasks)
-                # train_returns.append(get_returns(train_episodes[0]))
-                # valid_returns.append(get_returns(valid_episodes))
-                #
-                # logs['train_returns'] = np.concatenate(train_returns.numpy(), axis=0)
-                # logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
-
-                for meta_task_i, episode in enumerate(meta_tasks):
+                rewards_sum = rewards_std = rewards_mean = total_task = 0
+                for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
                     print(trajectory_sum.shape)
                     print(len(tasks))
                     print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum}")
-                    # raise
-                    # print(f"task {tasks[meta_task_i]} reward sum {episode.rewards.sum(dim=1) * 1.0}")
-                    # print(f"task {tasks[meta_task_i]} reward sum {episode.rewards.sum(dim=1) /episode.lengths * 1.0}")
-                    # print(f"task {tasks[meta_task_i]} reward mean {episode.rewards.mean(dim=1)}")
-                    # print(f"task {tasks[meta_task_i]} reward mean { (episode.rewards.mean(dim=1) * 1.0)}")
-                    # print(f"task {tasks[meta_task_i]} reward mean dim=0 {episode.rewards.mean(dim=1)}")
-                    # print(f"task {tasks[meta_task_i]} reward mean=0 {(episode.rewards.mean(dim=1) * 1.0)}")
-                    # print(f"task {tasks[meta_task_i]} episode len {episode.lengths}")
-
                     # trajectory for a task a mean reward,
                     # std per task, sum reward per task
-                    rewards_sum += episode.rewards.sum().cpu().item()
-                    rewards_std += episode.rewards.std().cpu().item()
-                    rewards_mean += episode.rewards.mean().cpu().item()
+                    rewards_sum += episode.rewards.sum(dim=0).cpu().item()
+                    rewards_std += episode.rewards.std(dim=0).cpu().item()
+                    rewards_mean += episode.rewards.mean(dim=0).cpu().item()
                     total_task += 1
 
                 tqdm_update_dict["reward mean"] = format_num(rewards_mean / total_task)
@@ -322,6 +303,13 @@ class DistributedMetaTrainer:
                 if skip_wandb and metric_receiver is not None:
                     metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
+
+            logs['train_returns'] = np.concatenate(train_returns, axis=0)
+            logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
+
+            file_name = self.spec.get("experiment_name")
+            with open(f"{file_name}.npz", 'wb') as f:
+                np.savez(f, **logs)
 
         except Exception as err:
             print("Error during meta-test", err)
