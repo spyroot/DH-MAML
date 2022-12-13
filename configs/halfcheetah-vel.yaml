@@ -32,6 +32,7 @@ trajectory_sampler:
   remap_types: False
 
 meta_task:
+  num_meta_test: 10
   num_meta_task: 40     # number of meta task in batch
   num_trajectory: 20   # Number of trajectories to sample for each task.
   num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.

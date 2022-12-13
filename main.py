@@ -35,6 +35,8 @@ if __name__ == '__main__':
     trainer = parser.add_argument_group('trainer')
     trainer.add_argument('--num_batches', type=int, default=10,
                          help="number of batches. Default 500.")
+    trainer.add_argument('--num_meta_test', type=int, default=10,
+                         help="number of meta test batch perform. Default 10")
     trainer.add_argument('--num_meta_task', type=int, default=40,
                          help="number of tasks per batch Default: 40)")
     trainer.add_argument('--num_trajectory', type=int, default=20,
