@@ -48,17 +48,17 @@ class AntEnv(AntEnv_):
 
         return self._action_scaling
 
-    def _get_obs(self):
-        """
-        :return:
-        """
-        return np.concatenate([
-            self.data.qpos.flat.copy(),
-            self.data.qvel.flat.copy(),
-            np.clip(self.data.cfrc_ext, -1, 1).flat,
-            self.get_body_com("torso")[:2].copy().flat,
-            self.get_body_com("torso")[:2].copy().flat,
-        ]).astype(np.float32).flatten()
+    # def _get_obs(self):
+    #     """
+    #     :return:
+    #     """
+    #     return np.concatenate([
+    #         self.data.qpos.flat.copy(),
+    #         self.data.qvel.flat.copy(),
+    #         np.clip(self.data.cfrc_ext, -1, 1).flat,
+    #         self.get_body_com("torso")[:2].copy().flat,
+    #         self.get_body_com("torso")[:2].copy().flat,
+    #     ]).astype(np.float32).flatten()
 
     def viewer_setup(self):
         """
