@@ -323,9 +323,10 @@ class DistributedMetaTrainer:
             with open(f"{file_name}.npz", 'wb') as f:
                 np.savez(f, **logs)
 
+            data = np.load(f"{file_name}.npz")
+            plt.plot(data)
+            plt.savefig(f"{file_name}.png")
 
-            # data = np.load(f"{file_name}.npz")
-            # plt.plot(data)
             # plt.show()
 
         except Exception as err:
