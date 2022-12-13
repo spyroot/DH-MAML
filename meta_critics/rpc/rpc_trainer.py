@@ -204,7 +204,8 @@ class DistributedMetaTrainer:
                         is_meta_test: Optional[bool] = False,
                         skip_wandb: Optional[bool] = False,
                         flash_io: Optional[bool] = False,
-                        num_meta_test: Optional[bool] = 10) -> None:
+                        num_meta_test: Optional[bool] = 10,
+                        is_verbose: Optional[bool] = False) -> None:
         """
         Perform a meta-test.  It loads new policy from saved model and test on a new environment.
         Each environment created from own seed. So agent seen environment.
@@ -287,8 +288,9 @@ class DistributedMetaTrainer:
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
-                    meta_target_value = tasks[meta_task_i].values()
-                    # print(f"task {meta_target_value} reward sum {trajectory_sum * (-1) / episode.lengths}")
+                    if is_verbose:
+                        meta_target_value = tasks[meta_task_i].values()
+                        print(f"task {meta_target_value} reward sum {trajectory_sum * (-1) / episode.lengths}")
                     rewards_sum += (episode.rewards.sum(dim=0) * (-1) / episode.lengths)
                     rewards_mean += (episode.rewards.mean(dim=0) * (-1) / episode.lengths)
                     rewards_std += episode.rewards.std(dim=0)
@@ -513,7 +515,8 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
                 num_meta_test = spec.get('num_meta_test', 'meta_task')
                 await meta_trainer.meta_test(step=0, num_meta_test=num_meta_test + 1,
                                              skip_wandb=True,
-                                             is_meta_test=True)
+                                             is_meta_test=True,
+                                             verbose=spec.is_verbose)
                 await meta_trainer.stop()
 
         else:

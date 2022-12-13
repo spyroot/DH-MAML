@@ -31,6 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=str, required=True, help="a path to the configuration json or yaml file.")
     parser.add_argument('--model_file', type=str, required=False, default="default.th",
                         help="a path to the a model file.")
+    parser.add_argument('--is_verbose', action='store_true', required=False, help="Enable verbose oput during test")
 
     trainer = parser.add_argument_group('trainer')
     trainer.add_argument('--num_batches', type=int, default=10,
