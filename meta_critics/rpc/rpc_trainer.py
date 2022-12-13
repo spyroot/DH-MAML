@@ -305,7 +305,7 @@ class DistributedMetaTrainer:
                     metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
 
-                if not is_meta_test:
+                if is_meta_test:
                     step += 1
 
             logs['train_returns'] = np.concatenate(train_returns, axis=0)
