@@ -94,8 +94,6 @@ class RemoteSimulation:
         """
         try:
             for i, task in enumerate(task_list):
-                # import time
-                # time.sleep(1)
                 self.envs.reset_task(task)
                 await self.sample(queue)
         except Exception as err:
@@ -126,6 +124,8 @@ class RemoteSimulation:
         for step in range(self.num_steps):
             train_episodes = self.create_episodes(params=params)
             loss = reinforce_loss(self.policy, train_episodes, W=params)
+            if self.debug:
+                print_red(f"reinforce_loss: {loss}")
             params = self.policy.update_params(loss, params=params,
                                                step_size=self.fast_lr,
                                                first_order=True)
@@ -143,7 +143,8 @@ class RemoteSimulation:
             train_episodes = self.create_episodes(params=params)
             await queue.put({"train": train_episodes})
             loss = reinforce_loss(self.policy, train_episodes, W=params)
-            print("renforce loss", loss)
+            if self.debug:
+                print_red(f"reinforce_loss: {loss}")
             params = self.policy.update_params(loss,
                                                params=params,
                                                step_size=self.fast_lr,
