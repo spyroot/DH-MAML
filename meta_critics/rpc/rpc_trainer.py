@@ -181,7 +181,7 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, metric_receiver: MetricReceiver, step: int, flash_io=False) -> None:
+    async def meta_test(self, metric_receiver: MetricReceiver, step: int, is_meta_test=False, flash_io=False) -> None:
         """
         Perform a meta-test.  It loads new policy from saved model and test on a new environment.
         Each environment created from own seed. So agent seen environment.
@@ -236,6 +236,13 @@ class DistributedMetaTrainer:
             tqdm_update_dict = {}
             tqdm_iter.set_postfix(tqdm_update_dict)
 
+            if is_meta_test:
+                prefix_tasks = "tasks_final_test"
+                prefix_task = "task_final_test"
+            else:
+                prefix_tasks = "tasks_train_test"
+                prefix_task = "task_train_meta_test"
+
             async for _ in tqdm_iter:
                 tasks = await self.agent.sample_tasks()
                 _, meta_tasks = await simulation.meta_tests(tasks)
@@ -258,22 +265,22 @@ class DistributedMetaTrainer:
                 tqdm_update_dict["reward std"] = format_num(rewards_std / total_task)
 
                 metric_data = {
-                    'tasks reward mean': rewards_mean,
-                    'tasks reward sum': rewards_sum,
-                    'tasks reward std': rewards_std,
-                    'task reward mean': rewards_mean / total_task,
-                    'task reward sum': rewards_sum / total_task,
-                    'task std task': rewards_std / total_task,
+                    f'{prefix_tasks} reward mean': rewards_mean,
+                    f'{prefix_tasks}  reward sum': rewards_sum,
+                    f'{prefix_tasks}  reward std': rewards_std,
+                    f'{prefix_task} reward mean': rewards_mean / total_task,
+                    f'{prefix_task} reward sum': rewards_sum / total_task,
+                    f'{prefix_task} std task': rewards_std / total_task,
                     'step': step,
                 }
 
-                self.tf_writer.add_scalar(f"train_meta_test/mean", rewards_sum, step)
-                self.tf_writer.add_scalar(f"train_meta_test/sum", rewards_std, step)
-                self.tf_writer.add_scalar(f"train_meta_test/std", rewards_mean, step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/mean", rewards_sum, step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/sum", rewards_std, step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/std", rewards_mean, step)
 
-                self.tf_writer.add_scalar(f"task_train_meta_test/mean_task", rewards_sum / total_task, step)
-                self.tf_writer.add_scalar(f"task_train_meta_test/sum_task", rewards_std / total_task, step)
-                self.tf_writer.add_scalar(f"task_train_meta_test/std_task", rewards_mean / total_task, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/mean_task", rewards_sum / total_task, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/sum_task", rewards_std / total_task, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/std_task", rewards_mean / total_task, step)
 
                 metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
@@ -449,16 +456,24 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size,
                          rpc_backend_options=agent_backend)
             meta_trainer = DistributedMetaTrainer(spec=spec, world_size=world_size, self_logger=AsyncLogger())
-            await meta_trainer.start()
-            await meta_trainer.meta_train()
-            await meta_trainer.stop()
+            if spec.is_train():
+                await meta_trainer.start()
+                await meta_trainer.meta_train()
+                await meta_trainer.stop()
+
+            if spec.is_train():
+                num_batches = spec.get('num_batches', 'meta_task')
+                metric_receiver = MetricReceiver(num_batches, spec)
+                for i in range(0, 10):
+                    await meta_trainer.meta_test(metric_receiver, i)
+
             # await logger.shutdown()
         else:
             observer_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
-
             rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size,
                          rpc_backend_options=observer_backend)
             await worker(rank=rank, world_size=world_size, self_logger=AsyncLogger())
+
         # await logger.
         print(f"Shutdown down {worker_name}")
         rpc.shutdown(graceful=True)

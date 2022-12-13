@@ -266,17 +266,17 @@ class DistributedAgent(GenericRpcAgent, ABC):
                     v = algo_metrics[k]
                     if isinstance(v, torch.Tensor):
                         tqdm_update_dict[k] = v.mean().item()
-                        metric_data[k] = v.mean().item()
+                        metric_data[f"loss/{k}"] = v.mean().item()
                         writer.add_scalar(f"loss/{k}", v.mean().item(), i_episode)
                     elif isinstance(v, ndarray):
                         loss_term = algo_metrics[k].mean()
                         tqdm_update_dict[k] = loss_term
-                        metric_data[k] = loss_term
+                        metric_data[f"loss/{k}"] = loss_term
                         writer.add_scalar(f"loss/{k}", loss_term, i_episode)
                     else:
                         tqdm_update_dict[k] = v
                         writer.add_scalar(f"loss/{k}", v, i_episode)
-                        metric_data[k] = v
+                        metric_data[f"loss/{k}"] = v
 
                 for k, v in reward_metrics.items():
                     writer.add_scalar(f"rewards_mean/{k}", v.mean(), i_episode)
