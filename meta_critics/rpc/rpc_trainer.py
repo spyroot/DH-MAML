@@ -266,8 +266,6 @@ class DistributedMetaTrainer:
             logs = {'tasks': []}
             train_returns, valid_returns = [], []
             async for tqdm_step in tqdm_iter:
-                if not is_meta_test:
-                    step = tqdm_step
 
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
@@ -307,12 +305,16 @@ class DistributedMetaTrainer:
                     metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
 
+                if not is_meta_test:
+                    step += 1
+
             logs['train_returns'] = np.concatenate(train_returns, axis=0)
             logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
 
             file_name = self.spec.get("experiment_name")
             with open(f"{file_name}.npz", 'wb') as f:
                 np.savez(f, **logs)
+
 
             # data = np.load(f"{file_name}.npz")
             # plt.plot(data)
