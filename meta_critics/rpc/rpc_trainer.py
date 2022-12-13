@@ -434,6 +434,7 @@ class DistributedMetaTrainer:
                 # this not a final meta test.
                 await self.meta_test(episode_step, metric_receiver)
                 if self.is_benchmark:
+                    print(f"Execution time {timer() - start}")
                     time_trace.append(timer() - start)
 
         except KeyboardInterrupt as kb:
