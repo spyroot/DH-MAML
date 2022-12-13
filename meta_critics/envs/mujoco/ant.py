@@ -108,7 +108,7 @@ class AntVelEnv(AntEnv):
     """
 
     def __init__(self, task=None, low=0.0, high=3.0, **kwargs):
-        super(AntVelEnv, self).__init__(self, **kwargs)
+        super(AntVelEnv, self).__init__()
         if task is None:
             task = {}
 
@@ -158,7 +158,7 @@ class AntVelEnv(AntEnv):
         self._goal_vel = task['velocity']
 
 
-class AntDirEnv(AntEnv, MujocoEnv):
+class AntDirEnv(AntEnv):
     """Ant environment with target direction, as described in [1]. The 
     code is adapted from
     https://github.com/cbfinn/maml_rl/blob/9c8e2ebd741cb0c7b8bf2d040c4caeeb8e06cc95/rllab/envs/mujoco/ant_env_rand_direc.py
@@ -178,6 +178,10 @@ class AntDirEnv(AntEnv, MujocoEnv):
     """
 
     def __init__(self, task=None):
+        """
+
+        :param task:
+        """
         if task is None:
             task = {}
 
