@@ -12,7 +12,7 @@ import torch
 import torch.distributed.rpc as rpc
 from torch.utils.tensorboard import SummaryWriter
 
-from meta_critics.ioutil.term_util import print_red
+from meta_critics.ioutil.term_util import print_red, print_green
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
 from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
@@ -22,6 +22,7 @@ from meta_critics.rpc.rpc_agent import DistributedAgent
 from meta_critics.running_spec import RunningSpec
 from meta_critics.simulation import RemoteSimulation
 from util import create_env_from_spec
+from tqdm.asyncio import trange, tqdm
 
 # import wandb
 # wandb.init(project="dh-maml", entity="spyroot")
@@ -155,13 +156,12 @@ class DistributedMetaTrainer:
         self.tf_writer = SummaryWriter(log_dir=self.log_dir)
 
         # distributed agents
-        self.agent = DistributedAgent(agent_policy=self.agent_policy,
-                                      spec=self.spec,
+        self.agent = DistributedAgent(agent_policy=self.agent_policy, spec=self.spec,
                                       world_size=self.world_size,
                                       self_logger=self.self_logger)
 
         self.started = True
-        self.log(f"DistributedMetaTrainer world size{self.world_size} started.")
+        print_green(f"DistributedMetaTrainer world size{self.world_size} started.")
 
     def load_model(self):
         """Load model, if training interrupted will load checkpoint.
@@ -175,9 +175,9 @@ class DistributedMetaTrainer:
                 if 'last_step' in state_dict:
                     last_step = state_dict["last_step"]
                     state_dict.pop("last_step")
-                    print(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
+                    print_green(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
                 else:
-                    print(f"Detected existing model. Loading from {model_file_name}.")
+                    print_green(f"Detected existing model. Loading from {model_file_name}.")
 
                 self.agent_policy.load_state_dict(state_dict)
 
@@ -461,6 +461,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size,
                          rpc_backend_options=agent_backend)
             meta_trainer = DistributedMetaTrainer(spec=spec, world_size=world_size, self_logger=AsyncLogger())
+
             if spec.is_train():
                 await meta_trainer.start()
                 await meta_trainer.meta_train()
