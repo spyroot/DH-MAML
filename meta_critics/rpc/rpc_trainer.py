@@ -280,11 +280,9 @@ class DistributedMetaTrainer:
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
-                    # print(trajectory_sum.shape)
-                    # print(len(tasks))
-                    # print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum * (-1) / episode.lengths}")
-                    rewards_sum += episode.rewards.sum(dim=0) * (-1) / episode.lengths
-                    rewards_mean += episode.rewards.mean(dim=0) * (-1) / episode.lengths
+                    print(f"task {[meta_task_i].values()} reward sum {trajectory_sum * (-1) / episode.lengths}")
+                    rewards_sum += (episode.rewards.sum(dim=0) * (-1) / episode.lengths)
+                    rewards_mean += (episode.rewards.mean(dim=0) * (-1) / episode.lengths)
                     rewards_std += episode.rewards.std(dim=0)
                     total_task += 1
 
@@ -292,27 +290,12 @@ class DistributedMetaTrainer:
                 print(torch.sum(rewards_std) / total_task)
                 print(torch.sum(rewards_mean) / total_task)
 
-                print(torch.sum(rewards_sum))
-                print(torch.sum(rewards_std))
-                print(torch.sum(rewards_mean))
-
-                # tqdm_update_dict["reward mean"] = format_num((torch.sum(rewards_sum) / total_task).item())
-                # tqdm_update_dict["reward sum"] = format_num((torch.sum(rewards_mean) / total_task).item())
-                # tqdm_update_dict["reward std"] = format_num((torch.sum(rewards_std) / total_task).item())
-
                 metric_data = {
-                    f'{prefix_tasks} reward mean': torch.sum(rewards_sum).item(),
-                    f'{prefix_tasks}  reward sum': torch.sum(rewards_mean).item(),
-                    f'{prefix_tasks}  reward std': torch.sum(rewards_std).item(),
                     f'{prefix_task} reward mean': (torch.sum(rewards_sum) / total_task).item(),
                     f'{prefix_task} reward sum': (torch.sum(rewards_std) / total_task).item(),
                     f'{prefix_task} std task': (torch.sum(rewards_sum) / total_task).item(),
                     'step': step,
                 }
-
-                self.tf_writer.add_scalar(f"{prefix_tasks}/mean", torch.sum(rewards_sum).item(), step)
-                self.tf_writer.add_scalar(f"{prefix_tasks}/sum", torch.sum(rewards_mean).item(), step)
-                self.tf_writer.add_scalar(f"{prefix_tasks}/std", torch.sum(rewards_std).item(), step)
 
                 self.tf_writer.add_scalar(f"{prefix_task}/mean_task",
                                           (torch.sum(rewards_sum) / total_task).item(), step)
