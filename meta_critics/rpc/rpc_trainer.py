@@ -254,6 +254,8 @@ class DistributedMetaTrainer:
                 prefix_tasks = "tasks_train_test"
                 prefix_task = "task_train_meta_test"
 
+            logs = {'tasks': []}
+            train_returns, valid_returns = [], []
             async for _ in tqdm_iter:
                 tasks = await self.agent.sample_tasks()
                 _, meta_tasks = await simulation.meta_tests(tasks)
@@ -263,11 +265,22 @@ class DistributedMetaTrainer:
                 rewards_mean = 0
                 total_task = 0
 
+                # to_numpy([episode.rewards.sum(dim=0) for episode in episodes])
+                #
+
+                # logs['tasks'].extend(tasks)
+                # logs['tasks'].extend(tasks)
+                # train_returns.append(get_returns(train_episodes[0]))
+                # valid_returns.append(get_returns(valid_episodes))
+                #
+                # logs['train_returns'] = np.concatenate(train_returns.numpy(), axis=0)
+                # logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
+
                 for meta_task_i, episode in enumerate(meta_tasks):
-                    trajectory_sum = episode.rewards.sum(dim=1)
+                    trajectory_sum = episode.rewards.sum(dim=0)
                     print(trajectory_sum.shape)
                     print(len(tasks))
-                    print(f"task {tasks[meta_task_i]} reward sum {episode.rewards.sum(dim=1)}")
+                    print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum}")
                     raise
                     # print(f"task {tasks[meta_task_i]} reward sum {episode.rewards.sum(dim=1) * 1.0}")
                     # print(f"task {tasks[meta_task_i]} reward sum {episode.rewards.sum(dim=1) /episode.lengths * 1.0}")
