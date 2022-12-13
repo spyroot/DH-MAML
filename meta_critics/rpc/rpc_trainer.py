@@ -280,22 +280,21 @@ class DistributedMetaTrainer:
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
-                    print(trajectory_sum.shape)
-                    print(len(tasks))
-                    print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum * (-1) / episode.lengths}")
-
-                    rewards_sum += episode.rewards.sum(dim=0)
+                    # print(trajectory_sum.shape)
+                    # print(len(tasks))
+                    # print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum * (-1) / episode.lengths}")
+                    rewards_sum += episode.rewards.sum(dim=0) * (-1) / episode.lengths
+                    rewards_mean += episode.rewards.mean(dim=0) * (-1) / episode.lengths
                     rewards_std += episode.rewards.std(dim=0)
-                    rewards_mean += episode.rewards.mean(dim=0)
                     total_task += 1
 
                 print(torch.sum(rewards_sum) / total_task)
                 print(torch.sum(rewards_std) / total_task)
                 print(torch.sum(rewards_mean) / total_task)
 
-                tqdm_update_dict["reward mean"] = format_num((torch.sum(rewards_sum) / total_task).item())
-                tqdm_update_dict["reward sum"] = format_num((torch.sum(rewards_mean) / total_task).item())
-                tqdm_update_dict["reward std"] = format_num((torch.sum(rewards_std) / total_task).item())
+                # tqdm_update_dict["reward mean"] = format_num((torch.sum(rewards_sum) / total_task).item())
+                # tqdm_update_dict["reward sum"] = format_num((torch.sum(rewards_mean) / total_task).item())
+                # tqdm_update_dict["reward std"] = format_num((torch.sum(rewards_std) / total_task).item())
 
                 metric_data = {
                     f'{prefix_tasks} reward mean': torch.sum(rewards_sum).item(),
