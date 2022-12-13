@@ -461,13 +461,11 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
                 await meta_trainer.meta_train()
                 await meta_trainer.stop()
 
-            if spec.is_train():
+            if spec.is_test():
                 num_batches = spec.get('num_batches', 'meta_task')
                 metric_receiver = MetricReceiver(num_batches, spec)
                 for i in range(0, 10):
                     await meta_trainer.meta_test(metric_receiver, i)
-
-            # await logger.shutdown()
         else:
             observer_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
             rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size,
