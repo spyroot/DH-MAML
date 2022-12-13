@@ -181,7 +181,7 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, metric_receiver: MetricReceiver, step: int,
+    async def meta_test(self, step: int, metric_receiver: Optional[MetricReceiver],
                         is_meta_test: Optional[bool] = False,
                         skip_wandb: Optional[bool] = False,
                         flash_io: Optional[bool] = False) -> None:
@@ -377,7 +377,7 @@ class DistributedMetaTrainer:
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
-                await self.meta_test(metric_receiver, episode_step)
+                await self.meta_test(episode_step, metric_receiver)
 
         except KeyboardInterrupt as kb:
 
@@ -469,9 +469,8 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             if spec.is_test():
                 await meta_trainer.start()
                 num_batches = spec.get('num_batches', 'meta_task')
-                metric_receiver = MetricReceiver(num_batches, spec)
                 for i in range(0, 10):
-                    await meta_trainer.meta_test(metric_receiver, i, skip_wandb=True, is_meta_test=True)
+                    await meta_trainer.meta_test(i, skip_wandb=True, is_meta_test=True)
                 await meta_trainer.stop()
 
         else:
