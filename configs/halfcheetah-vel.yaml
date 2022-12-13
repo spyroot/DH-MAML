@@ -6,6 +6,7 @@ env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/halfcheetahvel"
 model_dir: "~/meta_critics/models/halfcheetahvel"
 create_dir: True

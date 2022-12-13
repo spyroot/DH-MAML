@@ -218,7 +218,8 @@ class DistributedMetaTrainer:
 
         :return: Nothing
         """
-        print_green("Starting meta test.")
+        if is_verbose:
+            print_green("Starting meta test.")
         test_freq = self.spec.get('meta_test_freq', 'trainer')
 
         if not is_meta_test:
