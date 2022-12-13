@@ -52,7 +52,6 @@ class AntEnv(AntEnv_):
         """
         :return:
         """
-
         return np.concatenate([
             self.data.qpos.flat.copy(),
             self.data.qvel.flat.copy(),
