@@ -276,9 +276,9 @@ class DistributedMetaTrainer:
                     print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum}")
                     # trajectory for a task a mean reward,
                     # std per task, sum reward per task
-                    rewards_sum += episode.rewards.sum(dim=0).cpu().item()
-                    rewards_std += episode.rewards.std(dim=0).cpu().item()
-                    rewards_mean += episode.rewards.mean(dim=0).cpu().item()
+                    rewards_sum += episode.rewards.sum(dim=0)
+                    rewards_std += episode.rewards.std(dim=0)
+                    rewards_mean += episode.rewards.mean(dim=0)
                     total_task += 1
 
                 tqdm_update_dict["reward mean"] = format_num(rewards_mean / total_task)
