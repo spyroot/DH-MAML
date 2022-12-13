@@ -509,12 +509,14 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     """
     os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = '29519'
-    os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
+    # os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     worker_name = f"worker{rank}"
-
+    print(f"Starting DH-MAML number of worker threads {spec.num_worker_threads} rpc "
+          f"{spec.rpc_timeout} total number of workers {spec.workers}.")
     try:
         if rank == 0:
-            agent_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
+            agent_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=spec.num_worker_threads,
+                                                            rpc_timeout=spec.rpc_timeout)
             rpc.init_rpc(AGENT_NAME, rank=rank, world_size=world_size,
                          rpc_backend_options=agent_backend)
             meta_trainer = DistributedMetaTrainer(spec=spec, world_size=world_size, self_logger=AsyncLogger())

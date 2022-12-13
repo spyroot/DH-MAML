@@ -64,6 +64,11 @@ if __name__ == '__main__':
     misc.add_argument('--debug_env', action='store_true', required=False, help='Enables debug environment.')
     misc.add_argument('--gamma', type=float, default=1.0, metavar='G', help='discount factor (default: 1.0)')
     misc.add_argument('--workers', type=int, default=2, help='Number of workers minimum 2. Worker 1 main Agent.')
+    misc.add_argument('--num_worker_threads', type=int, default=16, help='Number of workers threads.')
+    misc.add_argument('--rpc_timeout', type=int, default=180, help='RPC timeout settings.')
+
+    misc = parser.add_argument_group('Miscellaneous')
+
     args = parser.parse_args()
     args.device = ('cuda' if (torch.cuda.is_available()) else 'cpu')
 
