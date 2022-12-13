@@ -14,6 +14,8 @@ def to_numpy(x: Any) -> np.ndarray:
         return x
     elif isinstance(x, torch.Tensor):
         return x.detach().cpu().numpy()
+    elif isinstance(x, (tuple, list)):
+        return np.stack([to_numpy(t) for t in x], axis=0)
     elif isinstance(x, (list, tuple, int, float)):
         return np.array(x)
     else:
