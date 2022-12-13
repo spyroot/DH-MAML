@@ -1,3 +1,7 @@
+"""
+Note main use mp.span hence it will fork to separate pids.
+Mus
+"""
 import argparse
 import os
 import sys
@@ -45,13 +49,13 @@ if __name__ == '__main__':
 
     # Miscellaneous
     misc = parser.add_argument_group('Miscellaneous')
-    parser.add_argument('--config_type', type=SpecTypes, default=SpecTypes.JSON, help='config file type.')
+    misc.add_argument('--config_type', type=SpecTypes, default=SpecTypes.JSON, help='config file type.')
     misc.add_argument('--model_dir', type=str, required=False, help='a directory where we will model data.')
     misc.add_argument('--seed', type=int, default=1, help='random seed (default: 1)')
-    parser.add_argument('--debug_agent', action='store_true', required=False, help='Enables debug for agent.')
-    parser.add_argument('--debug_env', action='store_true', required=False, help='Enables debug environment.')
-    parser.add_argument('--debug_task_sampler', action='store_true', required=False, help='Enables debug environment.')
-    parser.add_argument('--gamma', type=float, default=1.0, metavar='G', help='discount factor (default: 1.0)')
+    misc.add_argument('--debug_agent', action='store_true', required=False, help='Enables debug for agent.')
+    misc.add_argument('--debug_task_sampler', action='store_true', required=False, help='Enables debug environment.')
+    misc.add_argument('--debug_env', action='store_true', required=False, help='Enables debug environment.')
+    misc.add_argument('--gamma', type=float, default=1.0, metavar='G', help='discount factor (default: 1.0)')
     misc.add_argument('--workers', type=int, default=2, help='Number of workers minimum 2. Worker 1 main Agent.')
     args = parser.parse_args()
     args.device = ('cuda' if (torch.cuda.is_available()) else 'cpu')

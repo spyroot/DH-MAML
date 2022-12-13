@@ -1,9 +1,10 @@
-experiment_name: "HalfCheetahVel"
+experiment_name: "HalfCheetahDir"
 env_name: "HalfCheetahVel-v4"
 env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/halfcheetahdir"
 model_dir: "~/meta_critics/models/halfcheetahdir"
 create_dir: True
@@ -30,6 +31,7 @@ trajectory_sampler:
   remap_types: False
 
 meta_task:
+  num_meta_test: 10
   num_meta_task: 40     # number of meta task in batch
   num_trajectory: 20   # Number of trajectories to sample for each task.
   num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.

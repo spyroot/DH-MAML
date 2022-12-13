@@ -1,9 +1,13 @@
+"""
+This running state of trainer.  It will register all config as attributes  so technically each
+could be overwritten from shell.
+"""
 import argparse
 import json
 import os
 import warnings
 from pathlib import Path
-from typing import Optional, Dict, List, Any
+from typing import Optional, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -62,12 +66,13 @@ class RunningSpec:
         else:
             self._settings.config = str(p)
 
-    def _resolve_model_files(self):
-        """ Resolve all paths to all model files.
+    def _resolve_model_files(self, suffix=""):
+        """Resolve all paths to all model files, if prefix indicate will add
+        :param suffix:
         :return:
         """
+        # model rooted
         p = Path(self._model_dir)
-        print(p)
         # model and optimizer
         self.update("model_state_file", str(p / "model_state.th"), root="model_files")
         self.update("model_opt_state_file", str(p / "model_opt_state.th"), root="model_files")
@@ -149,14 +154,18 @@ class RunningSpec:
             if self._current_dir is None:
                 raise RunningSpecError("Current directory unknown.")
 
-            p = Path(self._current_dir).expanduser() / self.experiment_name
+            p = Path(self._current_dir).expanduser() / self._moder_root / self.experiment_name
 
         p = p.resolve()
         if p.is_file():
             raise FileExistsError(f"{self._model_dir} is a file.")
 
+        if os.access(self._current_dir, os.W_OK) is not True:
+            RunningSpecError(f"You don't have access to write {self._current_dir}.")
+
         if not os.path.exists(p):
-            os.makedirs(p)
+            print_green(f"Creating directory {p}")
+            os.makedirs(p, exist_ok=True)
 
         # register internal attr
         self._model_dir = str(p)
@@ -164,7 +173,7 @@ class RunningSpec:
         return True
 
     def _load_model_spec(self):
-        """Load model configuration files.
+        """Load model configuration files to running state.
         :return:
         """
         test_config = None
@@ -203,6 +212,10 @@ class RunningSpec:
             # and then overwrite from spec
             self.update_running_config(self._settings)
             self.update_running_config(train_config)
+
+        if self.contains("model_root"):
+            self._moder_root = self.get("model_root")
+            self.update('model_root', self.get("model_root"))
 
         # self.update_running_config(test_config)
         self._test_config = test_config
@@ -247,7 +260,7 @@ class RunningSpec:
         return yaml.dump(self._running_config)
 
     def update(self, k: str, val, root: Optional[str] = None) -> bool:
-        """Update spec and register all spec key as attributes.
+        """Updates spec and register all spec key as attributes.
         :param root:
         :param self:
         :param k:
@@ -296,17 +309,17 @@ class RunningSpec:
 
     def is_test(self):
         return self._mode == AppSelector.TestModel \
-            or self._mode == AppSelector.TrainTestModel \
-            or self._mode == AppSelector.TrainTestPlotModel
+               or self._mode == AppSelector.TrainTestModel \
+               or self._mode == AppSelector.TrainTestPlotModel
 
     def is_train(self):
         return self._mode == AppSelector.TranModel \
-            or self._mode == AppSelector.TrainTestModel \
-            or self._mode == AppSelector.TrainTestPlotModel
+               or self._mode == AppSelector.TrainTestModel \
+               or self._mode == AppSelector.TrainTestPlotModel
 
     def is_plot(self):
         return self._mode == AppSelector.PlotModel \
-            or self._mode == AppSelector.TrainTestPlotModel
+               or self._mode == AppSelector.TrainTestPlotModel
 
     def __str__(self):
         return str(self.show())
@@ -359,10 +372,9 @@ class RunningSpec:
 
     def as_dict(self, ):
         """
-
         :return:
         """
         _final_dict = {}
-        skip_words = ['debug', 'file', 'dir','train', 'tune', 'plot']
+        skip_words = ['debug', 'file', 'dir', 'train', 'tune', 'plot']
         self._as_dict(self._running_config, _final_dict, skip_words)
         return _final_dict
