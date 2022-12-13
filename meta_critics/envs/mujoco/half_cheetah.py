@@ -90,11 +90,21 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
         return observation, reward, done, False, infos
 
     def sample_tasks(self, num_tasks):
+        """
+
+        :param num_tasks:
+        :return:
+        """
         velocities = self.np_random.uniform(self.low, self.high, size=(num_tasks,))
         tasks = [{'velocity': velocity} for velocity in velocities]
         return tasks
 
     def reset_task(self, task):
+        """
+
+        :param task:
+        :return:
+        """
         self._task = task
         self._goal_vel = task['velocity']
 
@@ -152,10 +162,20 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         return observation, reward, done, False, infos
 
     def sample_tasks(self, num_tasks):
+        """
+
+        :param num_tasks:
+        :return:
+        """
         directions = 2 * self.np_random.binomial(1, p=0.5, size=(num_tasks,)) - 1
         tasks = [{'direction': direction} for direction in directions]
         return tasks
 
     def reset_task(self, task):
+        """
+
+        :param task:
+        :return:
+        """
         self._task = task
         self._goal_dir = task['direction']

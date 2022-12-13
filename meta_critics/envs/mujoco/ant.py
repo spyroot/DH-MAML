@@ -21,6 +21,15 @@ from gym.envs.mujoco import MujocoEnv
 
 
 class AntEnv(AntEnv_, MujocoEnv):
+    metadata = {
+        "render_modes": [
+            "human",
+            "rgb_array",
+            "depth_array",
+        ],
+        "render_fps": 20,
+    }
+
     @property
     def action_scaling(self):
         """
@@ -32,6 +41,7 @@ class AntEnv(AntEnv_, MujocoEnv):
         if self._action_scaling is None:
             lb, ub = self.action_space.low, self.action_space.high
             self._action_scaling = 0.5 * (ub - lb)
+
         return self._action_scaling
 
     def _get_obs(self):
@@ -58,6 +68,7 @@ class AntEnv(AntEnv_, MujocoEnv):
         # Hide the overlay
         self.viewer._hide_overlay = True
 
+
     def render(self, mode='human'):
         """
         :param mode:
@@ -71,6 +82,7 @@ class AntEnv(AntEnv_, MujocoEnv):
             return data
         elif mode == 'human':
             self._get_viewer().render()
+
 
 
 class AntVelEnv(AntEnv):
@@ -100,7 +112,7 @@ class AntVelEnv(AntEnv):
         self._task = task
         self.low = low
         self.high = high
-
+        self.
         self._goal_vel = task.get('velocity', 0.0)
         self._action_scaling = None
         super(AntVelEnv, self).__init__()
@@ -123,6 +135,7 @@ class AntVelEnv(AntEnv):
         state = self.state_vector()
         notdone = np.isfinite(state).all() \
                   and 0.2 <= state[2] <= 1.0
+
         done = not notdone
         infos = dict(reward_forward=forward_reward,
                      reward_ctrl=-ctrl_cost,
