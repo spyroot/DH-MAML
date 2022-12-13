@@ -265,7 +265,10 @@ class DistributedMetaTrainer:
 
             logs = {'tasks': []}
             train_returns, valid_returns = [], []
-            async for _ in tqdm_iter:
+            async for tqdm_step in tqdm_iter:
+                if not is_meta_test:
+                    step = tqdm_step
+
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
                 _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
@@ -292,35 +295,30 @@ class DistributedMetaTrainer:
                 print(torch.sum(rewards_std) / total_task)
                 print(torch.sum(rewards_mean) / total_task)
 
-                print(rewards_sum)
-                print(rewards_std)
-                print(rewards_mean)
-
-                print((torch.sum(rewards_sum) / total_task).item())
-                print((torch.sum(rewards_std) / total_task).item())
-                print((torch.sum(rewards_mean) / total_task).item())
-
-                tqdm_update_dict["reward mean"] = format_num(rewards_mean.item() / total_task)
-                tqdm_update_dict["reward sum"] = format_num(rewards_sum / total_task)
-                tqdm_update_dict["reward std"] = format_num(rewards_std / total_task)
+                tqdm_update_dict["reward mean"] = format_num((torch.sum(rewards_sum) / total_task).item())
+                tqdm_update_dict["reward sum"] = format_num((torch.sum(rewards_mean) / total_task).item())
+                tqdm_update_dict["reward std"] = format_num((torch.sum(rewards_std) / total_task).item())
 
                 metric_data = {
-                    f'{prefix_tasks} reward mean': rewards_mean,
-                    f'{prefix_tasks}  reward sum': rewards_sum,
-                    f'{prefix_tasks}  reward std': rewards_std,
-                    f'{prefix_task} reward mean': rewards_mean / total_task,
-                    f'{prefix_task} reward sum': rewards_sum / total_task,
-                    f'{prefix_task} std task': rewards_std / total_task,
+                    f'{prefix_tasks} reward mean': torch.sum(rewards_sum).item(),
+                    f'{prefix_tasks}  reward sum': torch.sum(rewards_mean).item(),
+                    f'{prefix_tasks}  reward std': torch.sum(rewards_std).item(),
+                    f'{prefix_task} reward mean': (torch.sum(rewards_sum) / total_task).item(),
+                    f'{prefix_task} reward sum': (torch.sum(rewards_std) / total_task).item(),
+                    f'{prefix_task} std task': (torch.sum(rewards_sum) / total_task).item(),
                     'step': step,
                 }
 
-                self.tf_writer.add_scalar(f"{prefix_tasks}/mean", rewards_sum, step)
-                self.tf_writer.add_scalar(f"{prefix_tasks}/sum", rewards_std, step)
-                self.tf_writer.add_scalar(f"{prefix_tasks}/std", rewards_mean, step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/mean", torch.sum(rewards_sum).item(), step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/sum", torch.sum(rewards_mean).item(), step)
+                self.tf_writer.add_scalar(f"{prefix_tasks}/std", torch.sum(rewards_std).item(), step)
 
-                self.tf_writer.add_scalar(f"{prefix_task}/mean_task", rewards_sum / total_task, step)
-                self.tf_writer.add_scalar(f"{prefix_task}/sum_task", rewards_std / total_task, step)
-                self.tf_writer.add_scalar(f"{prefix_task}/std_task", rewards_mean / total_task, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/mean_task",
+                                          (torch.sum(rewards_sum) / total_task).item(), step)
+                self.tf_writer.add_scalar(f"{prefix_task}/sum_task",
+                                          (torch.sum(rewards_sum) / total_task).item(), step)
+                self.tf_writer.add_scalar(f"{prefix_task}/std_task",
+                                          (torch.sum(rewards_sum) / total_task).item(), step)
 
                 if skip_wandb and metric_receiver is not None:
                     metric_receiver.update(metric_data)
