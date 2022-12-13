@@ -1,7 +1,5 @@
 experiment_name: "antdir"
-env_name: "Ant-v4goal-v4"
-
-# Additional parameters for the environment (eg. bound for task sampling).
+env_name: "AntPos-v4"
 env-args:
   low: -3.0
   high: 3.0
@@ -12,6 +10,7 @@ wandb:
   entity: spyroot
   project: dh-maml
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/antgoal"
 model_dir: "~/meta_critics/models/antgoal"
 create_dir: True
@@ -35,6 +34,7 @@ policy_network:
 
 trajectory_sampler:
   remap_types: False
+
 
 meta_task:
   num_meta_task: 40     # number of meta task in batch

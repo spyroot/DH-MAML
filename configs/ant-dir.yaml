@@ -1,6 +1,5 @@
-env-name: "AntDir-v2"
 experiment_name: "antdir"
-env_name: "Ant-v4dir-v4"
+env_name: "AntDir-v4"
 
 wandb:
   entity: spyroot
@@ -10,6 +9,7 @@ env-args:
   max_episode_steps: 100
   continuous: True
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/antdir"
 model_dir: "~/meta_critics/models/antdir"
 create_dir: True
