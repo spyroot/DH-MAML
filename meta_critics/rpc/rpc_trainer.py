@@ -198,6 +198,7 @@ class DistributedMetaTrainer:
 
         :return: Nothing
         """
+        print_green("Starting meta test.")
         test_freq = self.spec.get('meta_test_freq', 'trainer')
 
         if step == 0 or (step % test_freq != 0):
@@ -294,6 +295,7 @@ class DistributedMetaTrainer:
         except Exception as err:
             print("Error during meta-test", err)
         finally:
+            print_green("Finished meta test.")
             if flash_io:
                 self.tf_writer.flush()
 
