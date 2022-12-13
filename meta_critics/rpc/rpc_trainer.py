@@ -70,7 +70,10 @@ def resole_primary_dir(path_to_dir: str, create_if_needed: Optional[bool] = Fals
     if not log_file_path.exists():
         print(f"{log_dir} not found.")
         if create_if_needed:
-            os.makedirs(log_file_path, exist_ok=True)
+            from datetime import datetime
+            current_dateTime = datetime.now()
+            suffix = f"{current_dateTime.month}_{current_dateTime.day}_{current_dateTime.hour}"
+            os.makedirs(log_file_path / suffix, exist_ok=True)
         else:
             raise FileNotFoundError(f"Error: dir {log_dir} not found.")
 
@@ -159,6 +162,8 @@ class DistributedMetaTrainer:
         self.meta_learner = ConcurrentMamlTRPO(self.agent_policy, self.spec)
 
         if self.spec.contains("log_dir"):
+
+
             self.log_dir = resole_primary_dir(self.spec.get("log_dir"), create_if_needed=True)
 
         print(f"Tensorboard log location. {self.log_dir}")
