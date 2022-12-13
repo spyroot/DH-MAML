@@ -273,6 +273,7 @@ class DistributedMetaTrainer:
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
                 _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
                 _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_tasks_val]
+                logs['tasks'].extend(tasks)
 
                 train_returns.append(to_numpy(_meta_tasks_train))
                 valid_returns.append(to_numpy(_meta_tasks_val))
@@ -287,23 +288,20 @@ class DistributedMetaTrainer:
                     rewards_std += episode.rewards.std(dim=0)
                     total_task += 1
 
-                print(torch.sum(rewards_sum) / total_task)
-                print(torch.sum(rewards_std) / total_task)
-                print(torch.sum(rewards_mean) / total_task)
+                total_batch_reward = (torch.sum(rewards_sum) / total_task).item()
+                total_batch_mean = (torch.sum(rewards_mean) / total_task).item()
+                total_batch_std = (torch.sum(rewards_std) / total_task).item()
 
                 metric_data = {
-                    f'{prefix_task} reward mean': (torch.sum(rewards_sum) / total_task).item(),
-                    f'{prefix_task} reward sum': (torch.sum(rewards_std) / total_task).item(),
-                    f'{prefix_task} std task': (torch.sum(rewards_sum) / total_task).item(),
+                    f'{prefix_task} reward mean': total_batch_reward,
+                    f'{prefix_task} reward sum': total_batch_mean,
+                    f'{prefix_task} std task': total_batch_std,
                     'step': step,
                 }
 
-                self.tf_writer.add_scalar(f"{prefix_task}/mean_task",
-                                          (torch.sum(rewards_sum) / total_task).item(), step)
-                self.tf_writer.add_scalar(f"{prefix_task}/sum_task",
-                                          (torch.sum(rewards_sum) / total_task).item(), step)
-                self.tf_writer.add_scalar(f"{prefix_task}/std_task",
-                                          (torch.sum(rewards_sum) / total_task).item(), step)
+                self.tf_writer.add_scalar(f"{prefix_task}/mean_task", total_batch_reward, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/sum_task", total_batch_mean, step)
+                self.tf_writer.add_scalar(f"{prefix_task}/std_task", total_batch_std, step)
 
                 if skip_wandb and metric_receiver is not None:
                     metric_receiver.update(metric_data)
