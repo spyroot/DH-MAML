@@ -219,8 +219,7 @@ class RemoteSimulation:
                     break
                 observations_tensor = torch.from_numpy(observations)
                 if observations_tensor is None:
-                    break
-                    # continue
+                    continue
                 # if self.debug:
                 # if torch.all(observations_tensor == 0.0):
                 # if self.debug:
@@ -230,7 +229,7 @@ class RemoteSimulation:
                 actions_tensor = self.policy(observations_tensor.float(), W=params).sample()
                 actions = actions_tensor.cpu().numpy()
                 new_observations, rewards, _, _, infos = self.envs.step(actions)
-                print(f"yield batch {infos['batch_ids']}, counter={counter}")
+                # print(f"yield batch {infos['batch_ids']}, counter={counter}")
                 counter += 1
                 batch_ids = infos['batch_ids']
 
