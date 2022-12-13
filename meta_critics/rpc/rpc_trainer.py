@@ -280,7 +280,7 @@ class DistributedMetaTrainer:
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
-                    meta_target_value = meta_tasks_val[meta_task_i].values()
+                    meta_target_value = tasks[meta_task_i].values()
                     print(f"task {meta_target_value} reward sum {trajectory_sum * (-1) / episode.lengths}")
                     rewards_sum += (episode.rewards.sum(dim=0) * (-1) / episode.lengths)
                     rewards_mean += (episode.rewards.mean(dim=0) * (-1) / episode.lengths)
