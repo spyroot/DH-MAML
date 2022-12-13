@@ -292,11 +292,15 @@ class DistributedMetaTrainer:
                 print(torch.sum(rewards_std) / total_task)
                 print(torch.sum(rewards_mean) / total_task)
 
-                # print(rewards_std)
-                # print(rewards_std)
-                # print(rewards_std)
+                print(rewards_sum)
+                print(rewards_std)
+                print(rewards_mean)
 
-                tqdm_update_dict["reward mean"] = format_num(rewards_mean / total_task)
+                print((torch.sum(rewards_sum) / total_task).item())
+                print((torch.sum(rewards_std) / total_task).item())
+                print((torch.sum(rewards_mean) / total_task).item())
+
+                tqdm_update_dict["reward mean"] = format_num(rewards_mean.item() / total_task)
                 tqdm_update_dict["reward sum"] = format_num(rewards_sum / total_task)
                 tqdm_update_dict["reward std"] = format_num(rewards_std / total_task)
 
