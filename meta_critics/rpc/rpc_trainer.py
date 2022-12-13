@@ -282,7 +282,7 @@ class DistributedMetaTrainer:
                     trajectory_sum = episode.rewards.sum(dim=0)
                     print(trajectory_sum.shape)
                     print(len(tasks))
-                    print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum * (-1) / episode.length}")
+                    print(f"task {tasks[meta_task_i]} reward sum {trajectory_sum * (-1) / episode.lengths}")
 
                     rewards_sum += episode.rewards.sum(dim=0)
                     rewards_std += episode.rewards.std(dim=0)
