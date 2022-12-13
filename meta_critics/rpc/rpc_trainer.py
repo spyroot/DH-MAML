@@ -516,7 +516,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
                 await meta_trainer.meta_test(step=0, num_meta_test=num_meta_test + 1,
                                              skip_wandb=True,
                                              is_meta_test=True,
-                                             verbose=spec.is_verbose)
+                                             is_verbose=spec.is_verbose)
                 await meta_trainer.stop()
 
         else:
