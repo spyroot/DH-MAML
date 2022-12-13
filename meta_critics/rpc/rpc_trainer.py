@@ -436,7 +436,7 @@ class DistributedMetaTrainer:
                 if self.is_benchmark:
                     print(f"Execution time {timer() - start}")
                     time_trace.append(timer() - start)
-
+            print(f"Time took {sum(time_trace)}")
         except KeyboardInterrupt as kb:
 
             # shutdown metric listener
