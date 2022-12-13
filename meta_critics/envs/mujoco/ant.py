@@ -17,9 +17,10 @@ distribution on [-3, 3]^2.
 """
 import numpy as np
 from gym.envs.mujoco.ant_v4 import AntEnv as AntEnv_
+from gym.envs.mujoco import MujocoEnv
 
 
-class AntEnv(AntEnv_):
+class AntEnv(AntEnv_, MujocoEnv):
     @property
     def action_scaling(self):
         """
@@ -27,6 +28,7 @@ class AntEnv(AntEnv_):
         """
         if (not hasattr(self, 'action_space')) or (self.action_space is None):
             return 1.0
+
         if self._action_scaling is None:
             lb, ub = self.action_space.low, self.action_space.high
             self._action_scaling = 0.5 * (ub - lb)
