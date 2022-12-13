@@ -181,7 +181,7 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, metric_receiver: MetricReceiver, step: int, is_meta_test=False, flash_io=False) -> None:
+    async def meta_test(self, metric_receiver: MetricReceiver, step: int, is_meta_test=False, skip_wandb=False, flash_io=False) -> None:
         """
         Perform a meta-test.  It loads new policy from saved model and test on a new environment.
         Each environment created from own seed. So agent seen environment.
@@ -221,6 +221,7 @@ class DistributedMetaTrainer:
 
         # load policy , note we perform meta test also on target device.
         model_file_name = self.spec.get('model_state_file', 'model_files')
+        print(f"Loading model from {model_file_name}")
         with open(model_file_name, 'rb') as f:
             print(f"Loading model from {model_file_name}")
             state_dict = torch.load(f, map_location=torch.device(self.spec.get("device")))
@@ -282,7 +283,8 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"{prefix_task}/sum_task", rewards_std / total_task, step)
                 self.tf_writer.add_scalar(f"{prefix_task}/std_task", rewards_mean / total_task, step)
 
-                metric_receiver.update(metric_data)
+                if skip_wandb:
+                    metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
 
         except Exception as err:
@@ -465,7 +467,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
                 num_batches = spec.get('num_batches', 'meta_task')
                 metric_receiver = MetricReceiver(num_batches, spec)
                 for i in range(0, 10):
-                    await meta_trainer.meta_test(metric_receiver, i)
+                    await meta_trainer.meta_test(metric_receiver, i, skip_wandb=True, is_meta_test=True)
         else:
             observer_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=16, rpc_timeout=180)
             rpc.init_rpc(OBSERVER_NAME.format(rank), rank=rank, world_size=world_size,
