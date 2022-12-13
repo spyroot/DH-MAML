@@ -56,8 +56,8 @@ class AntEnv(AntEnv_):
             self.data.qpos.flat.copy(),
             self.data.qvel.flat.copy(),
             np.clip(self.data.cfrc_ext, -1, 1).flat,
-            self.get_body_com("torso").flat,
-            self.get_body_com("torso").flat,
+            self.get_body_com("torso")[:2].copy().flat,
+            self.get_body_com("torso")[:2].copy().flat,
         ]).astype(np.float32).flatten()
 
     def viewer_setup(self):
@@ -212,7 +212,7 @@ class AntDirEnv(AntEnv):
                      reward_contact=-contact_cost,
                      reward_survive=survive_reward,
                      task=self._task)
-        return observation, reward, done, infos
+        return observation, reward, done, False, infos
 
     def sample_tasks(self, num_tasks):
         directions = 2 * self.np_random.binomial(1, p=0.5, size=(num_tasks,)) - 1
@@ -260,7 +260,7 @@ class AntPosEnv(AntEnv):
                      reward_contact=-contact_cost,
                      reward_survive=survive_reward,
                      task=self._task)
-        return observation, reward, done, infos
+        return observation, reward, done, False, infos
 
     def sample_tasks(self, num_tasks):
         positions = self.np_random.uniform(self.low, self.high, size=(num_tasks, 2))
