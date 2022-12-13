@@ -181,7 +181,8 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
-    async def meta_test(self, step: int, metric_receiver: Optional[MetricReceiver],
+    async def meta_test(self, step: int,
+                        metric_receiver: Optional[MetricReceiver] = None,
                         is_meta_test: Optional[bool] = False,
                         skip_wandb: Optional[bool] = False,
                         flash_io: Optional[bool] = False) -> None:
@@ -286,7 +287,7 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"{prefix_task}/sum_task", rewards_std / total_task, step)
                 self.tf_writer.add_scalar(f"{prefix_task}/std_task", rewards_mean / total_task, step)
 
-                if skip_wandb:
+                if skip_wandb and metric_receiver is not None:
                     metric_receiver.update(metric_data)
                 tqdm_iter.set_postfix(tqdm_update_dict)
 
