@@ -210,6 +210,9 @@ class RemoteSimulation:
         with torch.no_grad():
             counter = 0
             while True:
+                # somewhere bug in gym.. timer
+                if counter == 100:
+                    break
                 if self.envs.is_terminated() or self.envs.is_truncated():
                     break
                 if self.envs.is_done():
