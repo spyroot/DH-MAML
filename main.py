@@ -31,11 +31,15 @@ if __name__ == '__main__':
     parser.add_argument('--test', action='store_true', required=False, help="train model for task")
     parser.add_argument('--plot', action='store_true', required=False, help="test model on task")
     parser.add_argument('--train', action='store_true', required=False, help="plots test result")
+    parser.add_argument('--benchmark', action='store_true', required=False, help="will measure "
+                                                                                 "time of execution for different "
+                                                                                 "number of threads")
+
     parser.add_argument('--use-cpu', action='store_true', help='if we want enforce cpu only.')
     parser.add_argument('--config', type=str, required=True, help="a path to the configuration json or yaml file.")
     parser.add_argument('--model_file', type=str, required=False, default="default.th",
                         help="a path to the a model file.")
-    parser.add_argument('--is_verbose', action='store_true', required=False, help="Enable verbose oput during test")
+    parser.add_argument('--is_verbose', action='store_true', required=False, help="Enable verbose out during test")
 
     trainer = parser.add_argument_group('trainer')
     trainer.add_argument('--num_batches', type=int, default=10,
@@ -47,7 +51,10 @@ if __name__ == '__main__':
     trainer.add_argument('--num_trajectory', type=int, default=20,
                          help="number of trajectory per task collect. Default 20")
 
-    # Miscellaneous
+    meta_test = parser.add_argument_group('Meta-Test')
+    parser.add_argument('--meta_test_freq', action='store_true', type=int, default=20, required=False,
+                        help="A frequency when we want to test")
+
     misc = parser.add_argument_group('Miscellaneous')
     misc.add_argument('--config_type', type=SpecTypes, default=SpecTypes.JSON, help='config file type.')
     misc.add_argument('--model_dir', type=str, required=False, help='a directory where we will model data.')

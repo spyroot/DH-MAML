@@ -3,33 +3,31 @@
 #  Mus
 import asyncio
 import os
-import signal
 import traceback
 from pathlib import Path
+from timeit import default_timer as timer
 from typing import Optional
 
 import numpy as np
 import torch
 import torch.distributed.rpc as rpc
+# import wandb
+# wandb.init(project="dh-maml", entity="spyroot")
+from aiologger import Logger
 from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
 from meta_critics.base_trainer.internal.utils import to_numpy
 from meta_critics.ioutil.term_util import print_red, print_green
+from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
-from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
 from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.metric_receiver import MetricReceiver
 from meta_critics.rpc.rpc_agent import DistributedAgent
 from meta_critics.running_spec import RunningSpec
 from meta_critics.simulation import RemoteSimulation
 from util import create_env_from_spec
-from tqdm.asyncio import trange, tqdm
-
-# import wandb
-# wandb.init(project="dh-maml", entity="spyroot")
-from aiologger import Logger
 
 logger = Logger.with_default_handlers()
 
@@ -106,6 +104,7 @@ class DistributedMetaTrainer:
         :param spec:
         :param world_size:
         """
+        self.is_benchmark = None
         self.last_episode = None
         self.tf_writer = None
         self.meta_learner = None
@@ -118,7 +117,7 @@ class DistributedMetaTrainer:
         self.self_logger = self_logger
 
         self.agent = None
-        self.started = False
+        self._started = False
         self.metric_queue = None
         self.trainer_queue = None
 
@@ -140,8 +139,21 @@ class DistributedMetaTrainer:
         # else:
         #     print("Self logger is none.")
 
+    def create_log_ifneed(self):
+        if self.spec.contains("log_dir"):
+            from datetime import datetime
+            current_dateTime = datetime.now()
+            suffix = f"{current_dateTime.month}_{current_dateTime.day}_{current_dateTime.hour}"
+            _log_dir = self.spec.get("log_dir")
+            _log_dir_timestamp = f"{_log_dir}/{suffix}"
+            self.log_dir = resole_primary_dir(_log_dir_timestamp, create_if_needed=True)
+            self.spec.update("log_dir", self.log_dir)
+        print(f"Tensorboard log location. {self.log_dir}")
+        self.tf_writer = SummaryWriter(log_dir=self.log_dir)
+
     async def start(self) -> None:
-        """
+        """ Start main asyncio routine, it will create a policy
+        and Agent and the rest.
         :return:
         """
 
@@ -155,29 +167,21 @@ class DistributedMetaTrainer:
 
         # self.agent_policy.share_memory()
         self.agent_policy.to(self.spec.get('device'))
+        if not self.is_benchmark:
+            self.load_model()
+        else:
+            print_green("Skipping model loading phase.")
 
-        self.load_model()
+        self.create_log_ifneed()
 
         # model
         self.meta_learner = ConcurrentMamlTRPO(self.agent_policy, self.spec)
-
-        if self.spec.contains("log_dir"):
-            from datetime import datetime
-            current_dateTime = datetime.now()
-            suffix = f"{current_dateTime.month}_{current_dateTime.day}_{current_dateTime.hour}"
-            _log_dir = self.spec.get("log_dir")
-            _log_dir_timestamp = f"{_log_dir}/{suffix}"
-            self.log_dir = resole_primary_dir(_log_dir_timestamp, create_if_needed=True)
-            self.spec.update("log_dir", self.log_dir)
-        print(f"Tensorboard log location. {self.log_dir}")
-        self.tf_writer = SummaryWriter(log_dir=self.log_dir)
 
         # distributed agents
         self.agent = DistributedAgent(agent_policy=self.agent_policy, spec=self.spec,
                                       world_size=self.world_size,
                                       self_logger=self.self_logger)
-
-        self.started = True
+        self._started = True
         print_green(f"DistributedMetaTrainer world size{self.world_size} started.")
 
     def load_model(self):
@@ -348,12 +352,13 @@ class DistributedMetaTrainer:
         """
 
         last_saved = 0
+        time_trace = []
         last_trainer_queue = None
         last_metric_queue = None
         trainer_metric_consumers = None
         trainer_episode_consumers = None
-
-        if self.started is False:
+        self.is_benchmark = self.spec.get('benchmark')
+        if self._started is False:
             raise ValueError("calling meta_train before trainer started.")
 
         assert self.tf_writer is not None
@@ -381,8 +386,11 @@ class DistributedMetaTrainer:
             from tqdm.asyncio import trange, tqdm
             tqdm_iter = tqdm(range(1, num_batches + 1),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
-
+            if self.is_benchmark:
+                print_red("Trainer in benchmark mode, no result saved.")
             async for episode_step in tqdm_iter:
+                if self.is_benchmark:
+                    start = timer()
                 trainer_metric_consumers = []
                 trainer_episode_consumers = []
                 for _ in range(self.world_size - 1):
@@ -415,13 +423,18 @@ class DistributedMetaTrainer:
                 await asyncio.gather(*trainer_episode_consumers, return_exceptions=True)
                 await asyncio.gather(*trainer_metric_consumers, return_exceptions=True)
 
-                if agent.save(episode_step):
-                    last_saved = episode_step
+                # we don't save.
+                if not self.is_benchmark:
+                    if agent.save(episode_step):
+                        last_saved = episode_step
+
                 self.last_episode = episode_step
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
                 await self.meta_test(episode_step, metric_receiver)
+                if self.is_benchmark:
+                    time_trace.append(timer() - start)
 
         except KeyboardInterrupt as kb:
 
@@ -454,7 +467,7 @@ class DistributedMetaTrainer:
         """
         :return:
         """
-        if not self.started:
+        if not self._started:
             raise ValueError("Trainer state already stopped.")
 
         if self.tf_writer is not None:
