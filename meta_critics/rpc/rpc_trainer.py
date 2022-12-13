@@ -263,7 +263,7 @@ class DistributedMetaTrainer:
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
                 _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
-                _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_task_train]
+                _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_tasks_val]
 
                 train_returns.append(_meta_tasks_train.detach().cpu().numpy())
                 valid_returns.append(_meta_tasks_val.detach().cpu().numpy())
@@ -320,6 +320,7 @@ class DistributedMetaTrainer:
 
         except Exception as err:
             print("Error during meta-test", err)
+            traceback.print_exc()
         finally:
             print_green("Finished meta test.")
             if flash_io:
