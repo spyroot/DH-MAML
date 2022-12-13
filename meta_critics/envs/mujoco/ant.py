@@ -14,6 +14,10 @@ distribution on [-3, 3]^2.
 [1] Emanuel Todorov, Tom Erez, Yuval Tassa, "MuJoCo: A physics engine for
    model-based control", 2012
    (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
+
+
+Bunch of fixed added to fix all mujoco
+Mus
 """
 import numpy as np
 from gym.envs.mujoco.ant_v4 import AntEnv as AntEnv_
@@ -48,11 +52,12 @@ class AntEnv(AntEnv_, MujocoEnv):
         """
         :return:
         """
+
         return np.concatenate([
-            self.sim.data.qpos.flat,
-            self.sim.data.qvel.flat,
-            np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
-            self.sim.data.get_body_xmat("torso").flat,
+            self.data.qpos.flat.copy(),
+            self.data.qvel.flat.copy(),
+            np.clip(self.data.cfrc_ext, -1, 1).flat,
+            self.data.get_body_xmat("torso").flat,
             self.get_body_com("torso").flat,
         ]).astype(np.float32).flatten()
 
@@ -74,13 +79,13 @@ class AntEnv(AntEnv_, MujocoEnv):
         :return:
         """
         if mode == 'rgb_array':
-            self._get_viewer().render()
+            self._get_viewer(mode).render()
             # window size used for old mujoco-py:
             width, height = 500, 500
-            data = self._get_viewer().read_pixels(width, height, depth=False)
+            data = self._get_viewer(mode).read_pixels(width, height, depth=False)
             return data
         elif mode == 'human':
-            self._get_viewer().render()
+            self._get_viewer(mode).render()
 
 
 class AntVelEnv(AntEnv, MujocoEnv):
@@ -134,7 +139,7 @@ class AntVelEnv(AntEnv, MujocoEnv):
 
         ctrl_cost = 0.5 * 1e-2 * np.sum(np.square(action / self.action_scaling))
         contact_cost = 0.5 * 1e-3 * np.sum(
-                np.square(np.clip(self.sim.data.cfrc_ext, -1, 1)))
+                np.square(np.clip(self.data.cfrc_ext, -1, 1)))
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost - contact_cost + survive_reward
@@ -198,7 +203,7 @@ class AntDirEnv(AntEnv, MujocoEnv):
 
         ctrl_cost = 0.5 * 1e-2 * np.sum(np.square(action / self.action_scaling))
         contact_cost = 0.5 * 1e-3 * np.sum(
-                np.square(np.clip(self.sim.data.cfrc_ext, -1, 1)))
+                np.square(np.clip(self.data.cfrc_ext, -1, 1)))
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost - contact_cost + survive_reward
@@ -244,7 +249,7 @@ class AntPosEnv(AntEnv, MujocoEnv):
 
         ctrl_cost = 0.5 * 1e-2 * np.sum(np.square(action / self.action_scaling))
         contact_cost = 0.5 * 1e-3 * np.sum(
-                np.square(np.clip(self.sim.data.cfrc_ext, -1, 1)))
+                np.square(np.clip(self.data.cfrc_ext, -1, 1)))
 
         observation = self._get_obs()
         reward = goal_reward - ctrl_cost - contact_cost + survive_reward
