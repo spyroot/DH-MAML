@@ -11,6 +11,7 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.distributed.rpc as rpc
+from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
 from meta_critics.base_trainer.internal.utils import to_numpy
@@ -261,9 +262,11 @@ class DistributedMetaTrainer:
             async for _ in tqdm_iter:
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
+                _meta_tasks_train = [episode.rewards.sum(dim=0) for episode in meta_tasks_val]
+                _meta_tasks_val = [episode.rewards.sum(dim=0) for episode in meta_task_train]
 
-                train_returns.append(to_numpy([episode.rewards.sum(dim=0) for episode in meta_tasks_val]))
-                valid_returns.append(to_numpy([episode.rewards.sum(dim=0) for episode in meta_task_train]))
+                train_returns.append(_meta_tasks_train.detach().cpu().numpy())
+                valid_returns.append(_meta_tasks_val.detach().cpu().numpy())
 
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
                 for meta_task_i, episode in enumerate(meta_tasks_val):
@@ -310,6 +313,10 @@ class DistributedMetaTrainer:
             file_name = self.spec.get("experiment_name")
             with open(f"{file_name}.npz", 'wb') as f:
                 np.savez(f, **logs)
+
+            data = np.load(f"{file_name}.npz")
+            plt.plot(data)
+            plt.show()
 
         except Exception as err:
             print("Error during meta-test", err)
