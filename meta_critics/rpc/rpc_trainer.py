@@ -42,6 +42,12 @@ OBSERVER_NAME = "observer{}"
 
 
 def format_num(n):
+
+    if isinstance(n, np.ndarray):
+        return n
+    elif isinstance(n, torch.Tensor):
+        return n.detach().cpu().numpy()
+
     f = '{0:.3g}'.format(n)
     f = f.replace('+0', '+')
     f = f.replace('-0', '-')
