@@ -7,7 +7,7 @@ Mus
 """
 import asyncio
 import collections
-from typing import Tuple, List, Optional, Dict
+from typing import Tuple, List, Optional, Dict, Any
 
 import torch
 
@@ -100,7 +100,7 @@ class RemoteSimulation:
             print_red(f"Error in meta sample: {err}")
             raise err
 
-    async def meta_tests(self, tasks):
+    async def meta_tests(self, tasks) -> Tuple[List[Any], List[Any]]:
         try:
             trajectory_train = []
             meta_test_episodes = []

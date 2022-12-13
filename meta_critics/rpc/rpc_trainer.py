@@ -262,8 +262,8 @@ class DistributedMetaTrainer:
             async for _ in tqdm_iter:
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
-                _meta_tasks_train = [episode.rewards.sum(dim=0) for episode in meta_tasks_val]
-                _meta_tasks_val = [episode.rewards.sum(dim=0) for episode in meta_task_train]
+                _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
+                _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_task_train]
 
                 train_returns.append(_meta_tasks_train.detach().cpu().numpy())
                 valid_returns.append(_meta_tasks_val.detach().cpu().numpy())
@@ -314,9 +314,9 @@ class DistributedMetaTrainer:
             with open(f"{file_name}.npz", 'wb') as f:
                 np.savez(f, **logs)
 
-            data = np.load(f"{file_name}.npz")
-            plt.plot(data)
-            plt.show()
+            # data = np.load(f"{file_name}.npz")
+            # plt.plot(data)
+            # plt.show()
 
         except Exception as err:
             print("Error during meta-test", err)
