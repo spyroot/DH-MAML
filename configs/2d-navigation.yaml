@@ -5,7 +5,7 @@ wandb:
   entity: spyroot
   project: dh-maml
 
-log_dir: "~/meta_critics/logs"
+log_dir: "~/meta_critics/logs/navigation"
 model_dir: "~/meta_critics/models/navigation"
 create_dir: True
 
