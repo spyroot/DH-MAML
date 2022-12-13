@@ -225,18 +225,20 @@ class AntDirEnv(AntEnv):
         self._goal_dir = task['direction']
 
 
-class AntPosEnv(AntEnv, MujocoEnv):
+class AntPosEnv(AntEnv):
 
     def __init__(self, task=None, low=-3.0, high=3.0):
+        super(AntPosEnv, self).__init__()
+
         if task is None:
             task = {}
+
         self._task = task
         self.low = low
         self.high = high
 
         self._goal_pos = task.get('position', np.zeros((2,), dtype=np.float32))
         self._action_scaling = None
-        super(AntPosEnv, self).__init__()
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
