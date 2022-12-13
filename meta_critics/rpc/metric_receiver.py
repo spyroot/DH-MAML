@@ -171,6 +171,8 @@ class MetricReceiver:
                 # average number of line search steps
                 if 'ls_step' in data:
                     self.ls_steps_metric[self.step] = data['ls_step']
+                    if self.step == len(data):
+                        self.step = 0
                     data['ls_step'] = self.ls_steps_metric.mean()
 
                 self.step += 1

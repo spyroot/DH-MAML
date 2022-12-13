@@ -52,7 +52,7 @@ if __name__ == '__main__':
                          help="number of trajectory per task collect. Default 20")
 
     meta_test = parser.add_argument_group('Meta-Test')
-    parser.add_argument('--meta_test_freq', action='store_true', type=int, default=20, required=False,
+    parser.add_argument('--meta_test_freq', type=int, default=20, required=False,
                         help="A frequency when we want to test")
 
     misc = parser.add_argument_group('Miscellaneous')
