@@ -40,7 +40,6 @@ OBSERVER_NAME = "observer{}"
 
 
 def format_num(n):
-
     if isinstance(n, np.ndarray):
         return n
     elif isinstance(n, torch.Tensor):
@@ -166,10 +165,10 @@ class DistributedMetaTrainer:
         self.agent_policy, self.is_continuous = policy_creator()
 
         # self.agent_policy.share_memory()
-        # if not self.is_benchmark:
-            # self.load_model()
-        # else:
-        #     print_green("Skipping model loading phase.")
+        if not self.is_benchmark:
+            self.load_model()
+        else:
+            print_green("Skipping model loading phase.")
 
         self.agent_policy.to(self.spec.get('device'))
         self.create_log_ifneed()
@@ -321,7 +320,6 @@ class DistributedMetaTrainer:
                         meta_target_value = tasks[meta_task_i].values()
                         print(f"task {meta_target_value} reward sum {trajectory_sum * (-1) / episode.lengths}")
 
-                    tqdm_iter.set_postfix(meta_task_tqdm)
                     rewards_sum += (episode.rewards.sum(dim=0) * (-1) / episode.lengths)
                     rewards_mean += (episode.rewards.mean(dim=0) * (-1) / episode.lengths)
                     rewards_std += episode.rewards.std(dim=0)
@@ -343,7 +341,7 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"{prefix_task}/std_task", total_batch_std, step)
 
                 tqdm_iter.set_postfix({
-                    "rewards" : total_batch_reward,
+                    "rewards": total_batch_reward,
                     "mean": total_batch_mean
                 })
 
@@ -397,12 +395,12 @@ class DistributedMetaTrainer:
             last_metric_queue = metric_queue
             last_trainer_queue = trainer_queue
 
-            agent = DistributedAgent(agent_policy=self.agent_policy,
-                                     spec=self.spec, world_size=self.world_size)
+            # agent = DistributedAgent(agent_policy=self.agent_policy,
+            #                          spec=self.spec, world_size=self.world_size)
 
             # update all worker with agent rref and set fresh policy.
-            await agent.broadcast_rref()
-            await agent.broadcast_policy()
+            await self.agent.broadcast_rref()
+            await self.agent.broadcast_policy()
 
             from tqdm.asyncio import trange, tqdm
             tqdm_iter = tqdm(range(1, num_batches + 1),
@@ -416,21 +414,22 @@ class DistributedMetaTrainer:
                 trainer_episode_consumers = []
                 for _ in range(self.world_size - 1):
                     # a task set to each consumer to pass data to algo when observer return data
-                    train_data_consumer = asyncio.create_task(agent.trainer_consumer(agent,
-                                                                                     trainer_queue,
-                                                                                     metric_queue,
-                                                                                     self.meta_learner,
-                                                                                     device=self.spec.get('device')))
+                    train_data_consumer = asyncio.create_task(self.agent.trainer_consumer(self.agent,
+                                                                                          trainer_queue,
+                                                                                          metric_queue,
+                                                                                          self.meta_learner,
+                                                                                          device=self.spec.get(
+                                                                                              'device')))
 
                     # a task set to each consumer to pass data after algo performed computation.
-                    metric_collector_task = asyncio.create_task(agent.metric_dequeue(metric_queue,
-                                                                                     self.tf_writer,
-                                                                                     metric_receiver,
-                                                                                     episode_step, tqdm_iter))
+                    metric_collector_task = asyncio.create_task(self.agent.metric_dequeue(metric_queue,
+                                                                                          self.tf_writer,
+                                                                                          metric_receiver,
+                                                                                          episode_step, tqdm_iter))
                     trainer_episode_consumers.append(train_data_consumer)
                     trainer_metric_consumers.append(metric_collector_task)
 
-                await agent.distribute_tasks(trainer_queue, n_steps=NUM_STEPS)
+                await self.agent.distribute_tasks(trainer_queue, n_steps=NUM_STEPS)
 
                 # two queue one for episode step and second for metric
                 await trainer_queue.join()
@@ -446,7 +445,7 @@ class DistributedMetaTrainer:
 
                 # we don't save.
                 if not self.is_benchmark:
-                    if agent.save(episode_step):
+                    if self.agent.save(episode_step):
                         last_saved = episode_step
 
                 self.last_episode = episode_step

@@ -27,7 +27,7 @@ class MetricReceiver:
         self.spec = spec
         self.use_wandb = False
 
-        self.ls_steps_metric = torch.empty(num_episodes)
+        self.ls_steps_metric = torch.empty(num_episodes * 2)
         # execution for update.
         self.step = 0
         if spec.contains("use_wandb", "trainer") and spec.get("use_wandb", "trainer"):
