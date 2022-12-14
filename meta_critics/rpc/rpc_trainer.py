@@ -11,8 +11,6 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.distributed.rpc as rpc
-# import wandb
-# wandb.init(project="dh-maml", entity="spyroot")
 from aiologger import Logger
 from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
@@ -28,7 +26,6 @@ from meta_critics.rpc.rpc_agent import DistributedAgent
 from meta_critics.running_spec import RunningSpec
 from meta_critics.simulation import RemoteSimulation
 from util import create_env_from_spec
-from meta_critics.rpc.utils import format_num
 
 logger = Logger.with_default_handlers()
 
@@ -96,7 +93,6 @@ class DistributedMetaTrainer:
                world_size 1 only principal agent.
         """
         self.is_benchmark = None
-        self.last_episode = None
         self.tf_writer = None
         self.meta_learner = None
         self.is_continuous = None
@@ -119,6 +115,8 @@ class DistributedMetaTrainer:
 
         self.self_logger.emit("Test 1")
         self.loop = asyncio.new_event_loop()
+        self._last_episode = None
+        self._first_step = self.spec.get("num_batches", "root=meta_task")
         self._experiment_name = None
         # internal state
         self._started = False
@@ -161,10 +159,10 @@ class DistributedMetaTrainer:
         self.agent_policy, self.is_continuous = policy_creator()
 
         # self.agent_policy.share_memory()
-        # if not self.is_benchmark:
-        #     self.load_model()
-        # else:
-        #     print_green("Skipping model loading phase.")
+        if not self.is_benchmark:
+            self.load_model()
+        else:
+            print_green("Skipping model loading phase.")
 
         self.agent_policy.to(self.spec.get('device'))
         self.create_log_ifneed()
@@ -192,6 +190,10 @@ class DistributedMetaTrainer:
                 state_dict = torch.load(f, map_location=torch.device(self.spec.get("device")))
                 if 'last_step' in state_dict:
                     last_step = state_dict["last_step"]
+                    if last_step == self.spec.get("num_batches", root='meta_task'):
+                        print("It looks like model already trained.")
+                    else:
+                        self._first_step = last_step
                     state_dict.pop("last_step")
                     print_green(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
                 else:
@@ -407,7 +409,7 @@ class DistributedMetaTrainer:
             await self.agent.broadcast_policy()
 
             from tqdm.asyncio import trange, tqdm
-            tqdm_iter = tqdm(range(1, num_batches + 1),
+            tqdm_iter = tqdm(range(1, self._first_step + 1),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
             if self.is_benchmark:
                 print_red("Trainer in benchmark mode, no result saved.")
@@ -452,7 +454,7 @@ class DistributedMetaTrainer:
                     if self.agent.save(episode_step):
                         last_saved = episode_step
 
-                self.last_episode = episode_step
+                self._last_episode = episode_step
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
@@ -472,7 +474,7 @@ class DistributedMetaTrainer:
             if self.tf_writer is not None:
                 self.tf_writer.close()
 
-            if self.agent is not None and self.last_episode > last_saved:
+            if self.agent is not None and self._last_episode > last_saved:
                 self.agent.save(last_saved)
 
             if last_trainer_queue is not None:
