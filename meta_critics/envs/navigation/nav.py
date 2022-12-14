@@ -18,7 +18,6 @@ In this problem  at each time step,
 
 Mus
 """
-from __future__ import annotations
 
 from abc import ABC
 from typing import Tuple, Optional

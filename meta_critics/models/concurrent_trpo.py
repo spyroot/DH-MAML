@@ -41,7 +41,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         try:
             episodes.to_gpu()
 
-            pi = self.policy(episodes.observations.view((-1, *episodes.observation_shape)).float(), W=W)
+            pi = self.policy(episodes.observations.view((-1, *episodes.observation_shape)), W=W)
             log_probs = pi.log_prob(episodes.actions.view((-1, *episodes.action_shape)))
             log_probs = log_probs.view(torch.max(episodes.lengths), episodes.batch_size)
             losses = -weighted_mean(log_probs * episodes.advantages, lengths=episodes.lengths)
@@ -92,18 +92,11 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         """
         is_first_order = (detached_policy is not None) or self.first_order
         adapted_params, inner_losses = self.adapt(train_data, first_order=is_first_order)
-        #
-        # print("Adapted")
-        # print("------------------------------------------------")
-        # for k, v in adapted_params.items():
-        #     print(v)
-        # print("------------------------------------------------")
-        # print("Adapted")
 
         with torch.set_grad_enabled(detached_policy is None):
             valid_episodes = valid_data
 
-            new_policy = self.policy(valid_episodes.observations.float(), W=adapted_params)
+            new_policy = self.policy(valid_episodes.observations, W=adapted_params)
 
             if detached_policy is None:
                 detached_policy = detach_dist_from_policy(new_policy, self.device)

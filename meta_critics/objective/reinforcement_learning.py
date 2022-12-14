@@ -26,7 +26,7 @@ def reinforce_loss(policy: Policy, episodes: AdvantageBatchEpisodes, W=None) -> 
         # print("episodes act", episodes.actions)
         # print("episodes act", episodes.lengths)
         # print("Computing reinforce_loss {type}", episodes)
-        pi = policy(episodes.observations.view((-1, *episodes.observation_shape)).float(), W=W)
+        pi = policy(episodes.observations.view((-1, *episodes.observation_shape)), W=W)
         # episodes.require_grad()
         # episodes.to_gpu()
         log_probs = pi.log_prob(episodes.actions.view((-1, *episodes.action_shape)))

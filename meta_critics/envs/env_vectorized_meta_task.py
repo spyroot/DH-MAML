@@ -14,10 +14,10 @@ import numpy as np
 import torch
 from gym import Env
 from gym.spaces import Space
-from gym.vector import SyncVectorEnv
 from gym.vector.utils import create_empty_array
 
 from meta_critics.envs.env_types import EnvType
+from meta_critics.envs.sync_vector_env import SyncVectorEnv
 
 
 class VectorizedMetaTask(SyncVectorEnv, ABC):

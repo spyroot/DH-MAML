@@ -34,7 +34,8 @@ class NormalMLPPolicy(Policy, nn.Module):
                  activation=F.relu,
                  init_std: Optional[float] = 1.0,
                  min_std: Optional[float] = 1e-6,
-                 device: torch.device = 'cpu'):
+                 device: torch.device = 'cpu',
+                 observations_dtype: Optional[torch.dtype] = torch.float32):
         super(NormalMLPPolicy, self).__init__(input_size=input_size,
                                               output_size=output_size)
         self.hidden_sizes = hidden_sizes
@@ -42,6 +43,8 @@ class NormalMLPPolicy(Policy, nn.Module):
         self.min_log_std = math.log(min_std)
         self.num_layers = len(hidden_sizes) + 1
         self.device = device
+        self.observations_dtype = observations_dtype
+        torch.set_default_dtype(self.observations_dtype)
 
         layer_sizes = (input_size,) + hidden_sizes
         for i in range(1, self.num_layers):

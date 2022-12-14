@@ -53,6 +53,7 @@ class GradientMetaLearner(object):
         flat_grad_kl = parameters_to_vector(torch.autograd.grad(kl, list(self.policy.parameters()), create_graph=True))
 
         def v_dot_grad(vector: torch.Tensor, retain_graph=True) -> torch.Tensor:
+            print("vector dtype", vector.dtype)
             grad_kl_v = torch.dot(flat_grad_kl, vector)
             grad2s = parameters_to_vector(torch.autograd.grad(grad_kl_v, list(self.policy.parameters()),
                                                               retain_graph=retain_graph))

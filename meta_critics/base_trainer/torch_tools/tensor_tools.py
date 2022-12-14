@@ -19,6 +19,15 @@ numpy_to_torch_remaping = {
 }
 
 string_to_torch_remaping = {
+    "bool": torch.bool,
+    "uint8": torch.uint8,
+    "int8": torch.int8,
+    "int16": torch.int16,
+    "int32": torch.int32,
+    "int64": torch.int64,
+    "float16": torch.float32,
+    "float32": torch.float32,
+    "float64": torch.float64,
     "torch.bool": torch.bool,
     "torch.uint8": torch.uint8,
     "torch.int8": torch.int8,

@@ -6,6 +6,7 @@
 # import math
 # from typing import Optional
 import math
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -27,7 +28,6 @@ def weight_init(module):
     if isinstance(module, nn.Linear):
         nn.init.xavier_uniform_(module.weight)
         module.bias.data.zero_()
-        print("############ called")
 
 
 class CategoricalRLPPolicy(Policy, nn.Module):
@@ -37,14 +37,16 @@ class CategoricalRLPPolicy(Policy, nn.Module):
                  hidden_sizes=(),
                  activation=F.relu,
                  device: torch.device = 'cpu',
-                 nm_size=5, nm_gate='hard'):
+                 nm_size=5, nm_gate='hard',
+                 observations_dtype: Optional[torch.dtype] = torch.float32):
         super(CategoricalRLPPolicy, self).__init__(input_size=input_size,
                                                    output_size=output_size)
 
         self.device = device
         self.hidden_sizes = hidden_sizes
-        self.activation = F.relu
-        # self.activation = torch.nn.LeakyReLU()
+        # self.activation = F.relu
+        self.activation = torch.nn.LeakyReLU()
+        torch.set_default_dtype(self.obs_dtype)
 
         self.activation.requires_grad = True
         self.nm_gate = nm_gate

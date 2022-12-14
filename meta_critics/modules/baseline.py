@@ -10,6 +10,8 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+
+from meta_critics.base_trainer.torch_tools.tensor_tools import string_to_torch_remaping
 from meta_critics.trajectory.base_trajectory import BaseTrajectory
 from functools import reduce
 from operator import mul
@@ -25,10 +27,14 @@ class LinearFeatureBaseline(nn.Module):
         self._device = device
         self._reg_coefficient = reg_coefficient
         self._input_size = reduce(mul, env.observation_space.shape, 1)
+
+        self.obs_dtype = string_to_torch_remaping[str(self._env.observation_space.dtype)]
+        torch.set_default_dtype(self.obs_dtype)
+
         self.weight = nn.Parameter(torch.Tensor(self.feature_size, ),
                                    requires_grad=False).to(self._device)
         self.weight.data.zero_()
-        self._eye = torch.eye(self.feature_size, dtype=torch.float32,
+        self._eye = torch.eye(self.feature_size, dtype=self.obs_dtype,
                               device=self.weight.device, requires_grad=False).to(self._device)
 
     @property
@@ -77,6 +83,7 @@ class LinearFeatureBaseline(nn.Module):
         returns = returns[flat_mask_nnz].view(-1, 1)
         reg_coeff = self._reg_coefficient
 
+        # print("return dtype", returns.dtype)
         XT_y = torch.matmul(feature_matrix.t(), returns)
         XT_X = torch.matmul(feature_matrix.t(), feature_matrix)
         assert XT_X.shape == self._eye.shape
@@ -109,5 +116,5 @@ class LinearFeatureBaseline(nn.Module):
         """
 
         features = self._feature(episodes)
-        values = torch.mv(features.view(-1, self.feature_size).float(), self.weight)
+        values = torch.mv(features.view(-1, self.feature_size), self.weight)
         return values.view(features.shape[:2])

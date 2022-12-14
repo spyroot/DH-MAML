@@ -30,7 +30,8 @@ policy_network:
   activation: "tanh"
 
 trajectory_sampler:
-  remap_types: False
+  remap_types: True
+  reward_dtype: torch.float64
 
 meta_task:
   num_meta_test: 10

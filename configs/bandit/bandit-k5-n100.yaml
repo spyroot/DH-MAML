@@ -1,6 +1,7 @@
 experiment_name: "bandits_k5"
 env_name: "Bandit-K5-v0"
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
 create_dir True:

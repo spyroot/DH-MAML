@@ -67,7 +67,7 @@ if __name__ == '__main__':
     misc.add_argument('--num_worker_threads', type=int, default=16, help='Number of workers threads.')
     misc.add_argument('--rpc_timeout', type=int, default=180, help='RPC timeout settings.')
     misc.add_argument('--rpc_port', type=str, default="29519", help='default rpc port.')
-
+    misc.add_argument('--disable_wandb', action='store_true', required=False, help="plots test result")
 
     misc = parser.add_argument_group('Miscellaneous')
 

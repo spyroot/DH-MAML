@@ -13,7 +13,7 @@ def conjugate_gradient(f_Ax: Callable, b: torch.Tensor,
     """
     p = b.clone().detach()
     r = b.clone().detach()
-    x = torch.zeros_like(b).float()
+    x = torch.zeros_like(b)
     rdotr = torch.dot(r, r)
 
     for i in range(cg_iters):

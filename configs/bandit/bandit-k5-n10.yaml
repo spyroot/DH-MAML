@@ -1,6 +1,7 @@
 experiment_name: "bandits_k5"
 env_name: "Bandit-K5-v0"
 
+model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
 create_dir True:
@@ -12,8 +13,11 @@ env-args:
 #  high: 0.5
 
 trajectory_sampler:
-  reward_dtype: torch.float32
+#  reward_dtype: torch.float32
+#  action_dtype: torch.int32
+#  observations_dtype: torch.float32
   remap_types: False
+
 
 trainer:
   sampler: distributed_rpc

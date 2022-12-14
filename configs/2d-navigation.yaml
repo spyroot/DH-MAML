@@ -16,7 +16,7 @@ env-args:
 
 trajectory_sampler:
   remap_types: False
-  reward_dtype: torch.float32
+#  reward_dtype: torch.float64
 #  action_dtype: torch.float32
 #  observations_dtype: torch.float32
 

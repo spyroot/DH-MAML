@@ -9,6 +9,7 @@ import asyncio
 import collections
 from typing import Tuple, List, Optional, Dict, Any
 
+import numpy as np
 import torch
 
 from meta_critics.base_trainer.torch_tools.tensor_tools import string_to_torch_remaping
@@ -215,16 +216,16 @@ class RemoteSimulation:
                 observations_tensor = torch.from_numpy(observations)
                 if observations_tensor is None:
                     continue
-
                 # if self.debug:
                 # if torch.all(observations_tensor == 0.0):
                 # if self.debug:
                 # print("Return tensor all zero and term + trunc ",
                 #       np.count_nonzero(self.envs._terminateds)
                 #       + np.count_nonzero(self.envs._truncateds))
-                actions_tensor = self.policy(observations_tensor.float(), W=params).sample()
+                actions_tensor = self.policy(observations_tensor, W=params).sample()
                 actions = actions_tensor.cpu().numpy()
                 new_observations, rewards, _, _, infos = self.envs.step(actions)
+
                 # print(f"yield batch {infos['batch_ids']}, counter={counter}")
                 counter += 1
                 batch_ids = infos['batch_ids']

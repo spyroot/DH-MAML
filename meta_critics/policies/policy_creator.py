@@ -7,6 +7,7 @@ from typing import Optional, List
 import gym
 import torch
 
+from meta_critics.base_trainer.torch_tools.tensor_tools import numpy_to_torch_dtype_dict, string_to_torch_remaping
 from meta_critics.policies.categorical_mlp import CategoricalRLPPolicy
 from meta_critics.policies.normal_mlp import NormalMLPPolicy
 from meta_critics.running_spec import RunningSpec
@@ -56,18 +57,22 @@ class PolicyCreator:
         """
         :return:
         """
+        obs_dtype = string_to_torch_remaping[str(self.env.observation_space.dtype)]
+        print("OBS dtype", obs_dtype)
+
         if self.is_continuous_actions:
             output_size = reduce(mul, self.env.action_space.shape, 1)
             policy = NormalMLPPolicy(self.input_size, output_size,
                                      hidden_sizes=tuple(self.hidden_sizes),
                                      activation=self.activation,
-                                     device=self.device).to(self.device)
+                                     device=self.device,
+                                     observations_dtype=obs_dtype).to(self.device)
         else:
             output_size = self.env.action_space.n
             policy = CategoricalRLPPolicy(self.input_size, output_size,
                                           hidden_sizes=tuple(self.hidden_sizes),
                                           activation=self.activation,
-                                          device=self.device).to(self.device)
+                                          device=self.device, observations_dtype=obs_dtype).to(self.device)
         assert policy is not None
         return policy, self.is_continuous_actions
 
