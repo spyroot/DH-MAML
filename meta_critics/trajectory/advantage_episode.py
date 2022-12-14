@@ -341,10 +341,6 @@ class AdvantageBatchEpisodes(BaseTrajectory):
                 dt: np.dtype = np.dtype(reward)
                 self._reward_dtype = type_remap[dt.type]
 
-            print(self._reward_dtype)
-            print(self._action_dtype)
-            print(self._observation_dtype)
-
             self._observations_list[batch_id].append(observation.astype(observation[0].dtype))
             self._actions_list[batch_id].append(torch.as_tensor(action, device=self.device, dtype=self._action_dtype))
             self._rewards_list[batch_id].append(torch.as_tensor(reward, device=self.device, dtype=self._reward_dtype))
