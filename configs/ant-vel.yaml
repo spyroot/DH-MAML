@@ -11,13 +11,14 @@ wandb:
   entity: spyroot
   project: dh-maml
 
+trajectory_sampler:
+  remap_types: True
+  reward_dtype: torch.float64
+
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/antvel"
 model_dir: "~/meta_critics/models/antvel"
 create_dir: True
-
-trajectory_sampler:
-  remap_types: False
 
 trainer:
   use_wandb: True

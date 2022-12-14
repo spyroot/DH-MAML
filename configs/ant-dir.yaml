@@ -8,6 +8,10 @@ wandb:
   entity: spyroot
   project: dh-maml
 
+trajectory_sampler:
+  remap_types: True
+  reward_dtype: torch.float64
+
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/antdir"
 model_dir: "~/meta_critics/models/antdir"
@@ -29,9 +33,6 @@ trainer:
 policy_network:
   hidden_sizes: [64, 64]
   activation: "tanh"
-
-trajectory_sampler:
-  remap_types: False
 
 meta_task:
   num_meta_task: 40     # number of meta task in batch

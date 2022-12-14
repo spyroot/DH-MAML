@@ -7,6 +7,10 @@ env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+trajectory_sampler:
+  remap_types: True
+  reward_dtype: torch.float64
+
 wandb:
   entity: spyroot
   project: dh-maml
@@ -33,8 +37,6 @@ policy_network:
   hidden_sizes: [64, 64]
   activation: "tanh"
 
-trajectory_sampler:
-  remap_types: False
 
 
 meta_task:

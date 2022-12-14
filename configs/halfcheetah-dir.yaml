@@ -9,6 +9,9 @@ log_dir: "~/meta_critics/logs/halfcheetahdir"
 model_dir: "~/meta_critics/models/halfcheetahdir"
 create_dir: True
 
+trajectory_sampler:
+  remap_types: True
+  reward_dtype: torch.float64
 
 trainer:
   use_wandb: True
@@ -26,9 +29,6 @@ trainer:
 policy_network:
   hidden_sizes: [64, 64]
   activation: "tanh"
-
-trajectory_sampler:
-  remap_types: False
 
 meta_task:
   num_meta_test: 10
