@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 *.th
+*__pycache__*
 __pycache__/
 __.pytest_cache__/
  meta_critics/__pycache__/*
