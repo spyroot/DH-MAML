@@ -128,14 +128,14 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         num_meta_tasks = len(train_futures[0])
         data = list(zip(zip(*train_futures), valid_futures))
 
-        params = None
-        for i in range(0, len(data)):
-            t, v = data[i]
-            loss = self.reinforce_loss(t[0], W=params)
-            params = self.policy.update_params(loss,
-                                               params=params,
-                                               step_size=0.2,
-                                               first_order=True)
+        # params = None
+        # for i in range(0, len(data)):
+        #     t, v = data[i]
+        #     loss = self.reinforce_loss(t[0], W=params)
+        #     params = self.policy.update_params(loss,
+        #                                        params=params,
+        #                                        step_size=0.2,
+        #                                        first_order=True)
 
         old_losses = torch.empty(len(data), device=self.device)
         # old_losses.requires_grad_()
