@@ -166,19 +166,20 @@ class DistributedMetaTrainer:
         self.agent_policy, self.is_continuous = policy_creator()
 
         # self.agent_policy.share_memory()
-        self.agent_policy.to(self.spec.get('device'))
-        if not self.is_benchmark:
-            self.load_model()
-        else:
-            print_green("Skipping model loading phase.")
+        # if not self.is_benchmark:
+            # self.load_model()
+        # else:
+        #     print_green("Skipping model loading phase.")
 
+        self.agent_policy.to(self.spec.get('device'))
         self.create_log_ifneed()
 
         # model
         self.meta_learner = ConcurrentMamlTRPO(self.agent_policy, self.spec)
 
         # distributed agents
-        self.agent = DistributedAgent(agent_policy=self.agent_policy, spec=self.spec,
+        self.agent = DistributedAgent(agent_policy=self.agent_policy,
+                                      spec=self.spec,
                                       world_size=self.world_size,
                                       self_logger=self.self_logger)
         self._started = True
@@ -199,7 +200,6 @@ class DistributedMetaTrainer:
                     print_green(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
                 else:
                     print_green(f"Detected existing model. Loading from {model_file_name}.")
-
                 self.agent_policy.load_state_dict(state_dict)
 
     def save_to_file(self, data_dict, train_returns, valid_returns):
@@ -303,6 +303,7 @@ class DistributedMetaTrainer:
             train_returns, valid_returns = [], []
             async for _ in tqdm_iter:
 
+                # sample set of tasks
                 tasks = await self.agent.sample_tasks()
                 meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
                 if is_meta_test:
@@ -313,11 +314,14 @@ class DistributedMetaTrainer:
                     valid_returns.append(to_numpy(_meta_tasks_val))
 
                 rewards_sum = rewards_std = rewards_mean = total_task = 0
+                tqdm_meta_pass = {}
                 for meta_task_i, episode in enumerate(meta_tasks_val):
                     trajectory_sum = episode.rewards.sum(dim=0)
                     if is_verbose:
                         meta_target_value = tasks[meta_task_i].values()
                         print(f"task {meta_target_value} reward sum {trajectory_sum * (-1) / episode.lengths}")
+
+                    tqdm_iter.set_postfix(meta_task_tqdm)
                     rewards_sum += (episode.rewards.sum(dim=0) * (-1) / episode.lengths)
                     rewards_mean += (episode.rewards.mean(dim=0) * (-1) / episode.lengths)
                     rewards_std += episode.rewards.std(dim=0)
@@ -338,13 +342,18 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"{prefix_task}/sum_task", total_batch_mean, step)
                 self.tf_writer.add_scalar(f"{prefix_task}/std_task", total_batch_std, step)
 
+                tqdm_iter.set_postfix({
+                    "rewards" : total_batch_reward,
+                    "mean": total_batch_mean
+                })
+
                 if skip_wandb and metric_receiver is not None:
                     metric_receiver.update(metric_data)
-                tqdm_iter.set_postfix(tqdm_update_dict)
 
                 if is_meta_test:
                     step += 1
 
+            # end of loop
             if is_meta_test:
                 self.save_to_file(data_dict, train_returns, valid_returns)
 
@@ -448,7 +457,8 @@ class DistributedMetaTrainer:
                 if self.is_benchmark:
                     print(f"Execution time {timer() - start}")
                     time_trace.append(timer() - start)
-            print(f"Time took {sum(time_trace)}")
+                    print(f"Time took {sum(time_trace)}")
+
         except KeyboardInterrupt as kb:
 
             # shutdown metric listener
