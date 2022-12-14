@@ -26,8 +26,8 @@ trainer:
   use_discount_gamma: True
   gae_lambda_factor: 1.0
   gamma_factor: 0.99
-  meta_test_freq: 2
-  save_freq: 2
+  meta_test_freq: 100
+  save_freq: 20
   use_gae: True
   resume: True
   num-workers: 1
