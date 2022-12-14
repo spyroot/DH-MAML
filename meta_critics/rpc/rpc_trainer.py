@@ -202,6 +202,30 @@ class DistributedMetaTrainer:
 
                 self.agent_policy.load_state_dict(state_dict)
 
+    def save_to_file(self, data_dict, train_returns, valid_returns):
+        """
+
+        :param data_dict:
+        :param train_returns:
+        :param valid_returns:
+        :return:
+        """
+        model_file_name = self.spec.model_dir
+
+        data_dict['train_returns'] = np.concatenate(train_returns, axis=0)
+        data_dict['valid_returns'] = np.concatenate(valid_returns, axis=0)
+        file_name = self.spec.get("experiment_name")
+        p = Path(self.spec.model_dir)
+        if p.is_dir():
+            file_to_save = p / f"{file_name}.npz"
+            plot_to_save = p / f"{file_name}.png"
+            with open(str(file_to_save), 'wb') as f:
+                np.savez(f, **data_dict)
+
+            data = np.load(file_to_save)
+            plt.plot(data)
+            plt.savefig(plot_to_save)
+
     async def meta_test(self,
                         step: int,
                         metric_receiver: Optional[MetricReceiver] = None,
@@ -275,7 +299,7 @@ class DistributedMetaTrainer:
             else:
                 prefix_task = "task_meta_test"
 
-            logs = {'tasks': []}
+            data_dict = {'tasks': []}
             train_returns, valid_returns = [], []
             async for _ in tqdm_iter:
 
@@ -284,7 +308,7 @@ class DistributedMetaTrainer:
                 if is_meta_test:
                     _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
                     _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_tasks_val]
-                    logs['tasks'].extend(tasks)
+                    data_dict['tasks'].extend(tasks)
                     train_returns.append(to_numpy(_meta_tasks_train))
                     valid_returns.append(to_numpy(_meta_tasks_val))
 
@@ -322,17 +346,7 @@ class DistributedMetaTrainer:
                     step += 1
 
             if is_meta_test:
-
-                logs['train_returns'] = np.concatenate(train_returns, axis=0)
-                logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
-
-                file_name = self.spec.get("experiment_name")
-                with open(f"{file_name}.npz", 'wb') as f:
-                    np.savez(f, **logs)
-
-                data = np.load(f"{file_name}.npz")
-                plt.plot(data)
-                plt.savefig(f"{file_name}.png")
+                self.save_to_file(data_dict, train_returns, valid_returns)
 
         except Exception as err:
             print("Error during meta-test", err)
