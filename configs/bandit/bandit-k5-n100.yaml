@@ -6,6 +6,14 @@ log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
 create_dir True:
 
+trajectory_sampler:
+#  reward_dtype: torch.float32
+#  action_dtype: torch.int32
+#  observations_dtype: torch.float32
+  remap_types: False
+#  reward_dtype: torch.float32
+#  action_dtype: torch.float32
+
 trainer:
   # Discount factor gamma.
   sampler: distributed_rpc

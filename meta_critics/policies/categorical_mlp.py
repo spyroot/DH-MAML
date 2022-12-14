@@ -45,8 +45,10 @@ class CategoricalRLPPolicy(Policy, nn.Module):
         self.device = device
         self.hidden_sizes = hidden_sizes
         # self.activation = F.relu
+        self.observations_dtype = observations_dtype
+        torch.set_default_dtype(self.observations_dtype)
+
         self.activation = torch.nn.LeakyReLU()
-        torch.set_default_dtype(self.obs_dtype)
 
         self.activation.requires_grad = True
         self.nm_gate = nm_gate

@@ -17,6 +17,8 @@ trajectory_sampler:
 #  action_dtype: torch.int32
 #  observations_dtype: torch.float32
   remap_types: False
+#  reward_dtype: torch.float32
+#  action_dtype: torch.float32
 
 
 trainer:
