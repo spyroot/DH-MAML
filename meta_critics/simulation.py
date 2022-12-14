@@ -198,21 +198,15 @@ class RemoteSimulation:
         :return:
         """
         self.policy.to(self._device)
-        # if torch.cuda.is_available():
-        #     print(next(self.policy.parameters()).device)
-        #     assert next(self.policy.parameters()).is_cuda
-        #     if params is not None:
-        #         for k, v in params.items():
-        #             assert v.is_cuda
-
         observations, info = self.envs.reset()
 
         with torch.no_grad():
             counter = 0
             while True:
                 # somewhere bug in gym.. timer
-                # if counter == 100:
-                #     break
+                if counter == 1000:
+                    print(" ###### this should not happened. break loop")
+                    break
                 if self.envs.is_terminated() or self.envs.is_truncated():
                     break
                 if self.envs.is_done():
