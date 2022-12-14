@@ -36,6 +36,17 @@ ls DH-MAML
 docker run --privileged --gpus all -it --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v ${PWD}:/code meta_critic:v1 bash
 cd /code
 
+(base) root@5e1ef3bb580d:/code/DH-MAML# conda env list
+# conda environments:
+#
+base                  *  /root/miniconda3
+meta_critic              /root/miniconda3/envs/meta_critic
+
+ conda activate meta_critic
+ pip install gym[all] -U
+ pip uninstall mujoco-py
+ pip install mujoco -U
+ # make sure you have latest 2.2.0 or 2.3.0
 ```
 
 Note you can run on Windows as well but not native. Currently, the torch distributed doesn't support a window. 
