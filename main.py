@@ -66,6 +66,8 @@ if __name__ == '__main__':
     misc.add_argument('--workers', type=int, default=2, help='Number of workers minimum 2. Worker 1 main Agent.')
     misc.add_argument('--num_worker_threads', type=int, default=16, help='Number of workers threads.')
     misc.add_argument('--rpc_timeout', type=int, default=180, help='RPC timeout settings.')
+    misc.add_argument('--rpc_port', type=str, default="29519", help='default rpc port.')
+
 
     misc = parser.add_argument_group('Miscellaneous')
 

@@ -24,6 +24,7 @@ from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.generic_rpc_agent import GenericRpcAgent
 from meta_critics.rpc.metric_receiver import MetricReceiver
 from meta_critics.rpc.rpc_observer import RpcObservers
+from meta_critics.rpc.utils import format_num
 from meta_critics.rpc.shared_vars import OBSERVER_NAME
 from meta_critics.running_spec import RunningSpec
 from meta_critics.trajectory.advantage_episode import AdvantageBatchEpisodes
@@ -265,16 +266,16 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 for k in algo_metrics.keys():
                     v = algo_metrics[k]
                     if isinstance(v, torch.Tensor):
-                        tqdm_update_dict[k] = v.mean().item()
+                        tqdm_update_dict[k] = format_num(v.mean().item())
                         metric_data[f"loss/{k}"] = v.mean().item()
                         writer.add_scalar(f"loss/{k}", v.mean().item(), i_episode)
                     elif isinstance(v, ndarray):
                         loss_term = algo_metrics[k].mean()
-                        tqdm_update_dict[k] = loss_term
+                        tqdm_update_dict[k] = format_num(loss_term)
                         metric_data[f"loss/{k}"] = loss_term
                         writer.add_scalar(f"loss/{k}", loss_term, i_episode)
                     else:
-                        tqdm_update_dict[k] = v
+                        tqdm_update_dict[k] = format_num(v)
                         writer.add_scalar(f"loss/{k}", v, i_episode)
                         metric_data[f"loss/{k}"] = v
 

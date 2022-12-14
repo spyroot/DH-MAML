@@ -28,6 +28,7 @@ from meta_critics.rpc.rpc_agent import DistributedAgent
 from meta_critics.running_spec import RunningSpec
 from meta_critics.simulation import RemoteSimulation
 from util import create_env_from_spec
+from meta_critics.rpc.utils import format_num
 
 logger = Logger.with_default_handlers()
 
@@ -37,19 +38,6 @@ OBSERVER_NAME = "observer{}"
 
 
 # logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-
-
-def format_num(n):
-    if isinstance(n, np.ndarray):
-        return n
-    elif isinstance(n, torch.Tensor):
-        return n
-
-    f = '{0:.3g}'.format(n)
-    f = f.replace('+0', '+')
-    f = f.replace('-0', '-')
-    n = str(n)
-    return f if len(f) < len(n) else n
 
 
 def resole_primary_dir(path_to_dir: str, create_if_needed: Optional[bool] = False) -> str:
@@ -165,10 +153,10 @@ class DistributedMetaTrainer:
         self.agent_policy, self.is_continuous = policy_creator()
 
         # self.agent_policy.share_memory()
-        if not self.is_benchmark:
-            self.load_model()
-        else:
-            print_green("Skipping model loading phase.")
+        # if not self.is_benchmark:
+        #     self.load_model()
+        # else:
+        #     print_green("Skipping model loading phase.")
 
         self.agent_policy.to(self.spec.get('device'))
         self.create_log_ifneed()
@@ -530,7 +518,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     :return: Nothing
     """
     os.environ['MASTER_ADDR'] = '127.0.0.1'
-    os.environ['MASTER_PORT'] = '29519'
+    os.environ['MASTER_PORT'] = spec.get("rpc_port")
     # os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     worker_name = f"worker{rank}"
     print(f"Starting DH-MAML number of worker threads {spec.num_worker_threads} rpc "

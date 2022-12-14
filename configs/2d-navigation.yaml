@@ -15,10 +15,10 @@ env-args:
   high: 0.5
 
 trajectory_sampler:
-  remap_types: True
+  remap_types: False
   reward_dtype: torch.float32
-  action_dtype: torch.float32
-  observations_dtype: torch.float32
+#  action_dtype: torch.float32
+#  observations_dtype: torch.float32
 
 trainer:
   use_wandb: True

@@ -29,9 +29,7 @@ class AsyncLogger:
 
     def emit(self, record: str):
         AsyncLogger.self_queue.put_nowait(record)
-        if self.loop is None:
-            print("Loop is none")
-        else:
+        if self.loop is not None:
             self.loop._write_to_self()
 
     def start_loop(self):
