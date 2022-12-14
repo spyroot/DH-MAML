@@ -1,3 +1,5 @@
+# For now I disabled both threaded , asinio and multiprocessing logging.  Trie all
+# The IO stream very ddogy,  someone need check torch code for mp.span. It a bit buggy.
 import logging
 import multiprocessing
 import sys

@@ -1,6 +1,7 @@
-# Tuple used to communicate between for RPC.
+# Tuple used to communicate between RPC speakers, for now RPC. I have to detach tensor
+# So on same node I still need detach.  Hopefully torch will add CUDA memory sharing option
+# for a same node.
 from collections import namedtuple
-
 NamedEpisode = namedtuple("NamedEpisode",
                           ("observations",
                            "actions",

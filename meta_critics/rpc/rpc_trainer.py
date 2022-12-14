@@ -87,9 +87,13 @@ class DistributedMetaTrainer:
                  world_size: int,
                  self_logger: Optional[AsyncLogger] = None):
         """
+        A main logic for a trainer.  the entry point a start method,  and it asinio,
+        caller need call first
+        await start() that will start agents, rpc sync etc.
 
-        :param spec:
-        :param world_size:
+        :param spec: A spec file, i.e. yaml or json , check config dir.
+        :param world_size: a world_size  Number of processes participating in the job.
+               world_size 1 only principal agent.
         """
         self.is_benchmark = None
         self.last_episode = None
@@ -98,13 +102,14 @@ class DistributedMetaTrainer:
         self.is_continuous = None
         self.agent_policy = None
         self.num_batches = None
+        # this tqdm iter , initialized post start
         self.tqdm_iter = None
+        # env, so we can infer data types , action space etc.
         self.env = None
-
+        #
         self.self_logger = self_logger
-
+        # list of agents.
         self.agent = None
-        self._started = False
         self.metric_queue = None
         self.trainer_queue = None
 
@@ -114,6 +119,9 @@ class DistributedMetaTrainer:
 
         self.self_logger.emit("Test 1")
         self.loop = asyncio.new_event_loop()
+        self._experiment_name = None
+        # internal state
+        self._started = False
 
     def log(self, msg: str) -> None:
         """
@@ -170,7 +178,8 @@ class DistributedMetaTrainer:
                                       world_size=self.world_size,
                                       self_logger=self.self_logger)
         self._started = True
-        print_green(f"DistributedMetaTrainer world size{self.world_size} started.")
+        self._experiment_name = self.spec.get("experiment_name")
+        print_green(f"DistributedMetaTrainer world size {self.world_size} experiment {self._experiment_name} started.")
 
     def load_model(self):
         """Load model, if training interrupted will load checkpoint.

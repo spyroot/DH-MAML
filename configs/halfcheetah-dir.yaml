@@ -4,6 +4,11 @@ env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+# this you wandb project and username so you can get all stats.
+wandb:
+  entity: spyroot
+  project: dh-maml
+
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/halfcheetahdir"
 model_dir: "~/meta_critics/models/halfcheetahdir"

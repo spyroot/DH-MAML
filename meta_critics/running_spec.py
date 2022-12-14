@@ -24,16 +24,13 @@ class RunningSpecError(Exception):
 
 class RunningSpec:
     mandatory_keys = ['num_batches', 'num_meta_test', 'num_meta_task', 'num_trajectory', 'meta_test_freq',
-                      'gamma', 'workers',
-                      'experiment_name',
-                      'env_name',
-                      'wandb.entity', 'wandb.project', 'trajectory_sampler.remap_types',
-                      'trajectory_sampler.reward_dtype',
+                      'gamma', 'workers', 'experiment_name', 'env_name', 'wandb.entity', 'wandb.project',
+                      'trajectory_sampler.remap_types',
                       'model_root', 'log_dir', 'create_dir', 'trainer.use_wandb', 'trainer.type', 'trainer.save_freq',
                       'trainer.meta_test_freq', 'trainer.use_gae', 'trainer.gamma_factor', 'trainer.gae_lambda_factor',
                       'trainer.use_discount_gamma', 'trainer.resume', 'trainer.num-workers',
-                      'policy_network.hidden_sizes',
-                      'policy_network.activation', 'meta_task.num_batches', 'meta_task.num_meta_task',
+                      'policy_network.hidden_sizes', 'policy_network.activation', 'meta_task.num_batches',
+                      'meta_task.num_meta_task',
                       'meta_task.num_trajectory', 'meta_task.num_steps', 'meta_task.fast_lr', 'meta_task.first_order',
                       'model.name', 'model.model_type', 'model.max_kl', 'model.cg_iters', 'model.cg_damping',
                       'model.ls_max_steps', 'model.ls_backtrack_ratio'
@@ -54,7 +51,7 @@ class RunningSpec:
         self._running_config = None
         self._read_spec()
 
-    def _resolve_model_dir(self):
+    def _resolve_model_dir(self) -> str:
         """Resolve model directory.
         :return:
         """
@@ -68,7 +65,7 @@ class RunningSpec:
             self._model_dir = str(p)
             return self._model_dir
 
-    def _resolve_config_file(self):
+    def _resolve_config_file(self) -> str:
         """ Resolves full path to a config file and updates
         internal state.
         :return: Nothing. Will raise exception if 'config' key not present.
@@ -83,7 +80,7 @@ class RunningSpec:
         else:
             self._settings.config = str(p)
 
-    def _resolve_model_files(self, suffix=""):
+    def _resolve_model_files(self, suffix="") -> None:
         """Resolve all paths to all model files, if prefix indicate will add
         :param suffix:
         :return:
@@ -102,8 +99,8 @@ class RunningSpec:
         # debug and performance log files
         self.update("performances_file", str(p / "performances.log"), root="model_files")
 
-    def _read_spec(self):
-        """
+    def _read_spec(self) -> None:
+        """Main entry point for config runner.
         :return:
         """
         # resolve mandatory attributes
@@ -119,9 +116,9 @@ class RunningSpec:
 
     @staticmethod
     def load_json(_filename: str, is_strict: Optional[bool] = False):
-        """
-        :param is_strict:
-        :param _filename:
+        """Load json spec.
+        :param is_strict: will throw error.
+        :param _filename: path to a file.
         :return:
         """
         if _filename is None or len(_filename.strip()) == 0:
@@ -141,8 +138,8 @@ class RunningSpec:
     @staticmethod
     def load_yaml(_filename: str, is_strict: Optional[bool] = False):
         """Load config file from yaml.
-        :param is_strict:
-        :param _filename:
+        :param is_strict: will throw error.
+        :param _filename: path to a file.
         :return: config file.
         """
         if _filename is None or len(_filename.strip()) == 0:
