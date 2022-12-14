@@ -1,6 +1,7 @@
 experiment_name: "navigation"
 env_name: "navigation-v0"
 
+# this you wandb project and username so you can get all stats.
 wandb:
   entity: spyroot
   project: dh-maml
@@ -8,12 +9,14 @@ wandb:
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/navigation"
 model_dir: "~/meta_critics/models/navigation"
-create_dir: True
+create_dir: True # will create all dir
 
 env-args:
   low: -0.5
   high: 0.5
 
+# if we need rename dtypes. It important if model see a float64
+# and it doesn't know about that you will hit all sort of issues
 trajectory_sampler:
   remap_types: False
 #  reward_dtype: torch.float64

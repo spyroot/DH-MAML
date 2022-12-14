@@ -11,7 +11,16 @@ The agent first sends all trajectories tensor to the device and passes that data
 For example, in the current implementation, it is MAML and TRPO.   Thus, during the meta-training phase, 
 we first perform the adaption phase for an existing policy after the algorithm uses TRPO semantics to compute 
 new KL terms for the current policy. Finally, the principal agent receives all updates from all the agents. 
-
+## Before you run a code 
+ 
+* Make sure all tests in mujoco_task_test are passing. It is just a main file, so run them and check.
+* Gym introduced number of changes  , more or less I fixed all environments for meta task.
+For example.
+* 
+```
+python ant_dir_time_limit.py 
+# this one should stop.
+```
 ## Architecture
 ![img_1.png](imgs/img_1.png)
 
@@ -72,6 +81,22 @@ RUN pip install gym[all] -U
 ## MacOS 
 
 I tested on MacOS 10.13.1 / Python 3.10 / Conda.  
+
+## Instruction before you run.
+
+Before you run training.  Run
+
+```bash
+./run_all_test.sh
+```
+
+It will run each scenario in batch size, on GPU and CPU. So you can validate everything is working. 
+![imgs/img.png](training.png)
+
+## Metrics.
+I serialize all metrics to wandb.ai
+
+![imgs/img.png](wandb.png)
 
 ## High level
 
@@ -154,7 +179,12 @@ trainer:
   resume: True
   num-workers: 2
 ```
+* Ant fixed
 
+![imgs/img.png](ant.png)
+
+Half Cheetah fixed
+![imgs/img_1.png](cheeta.png)
 
 ## References
 This work uses many ideas and the work of many brilliant papers.  

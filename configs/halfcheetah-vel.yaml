@@ -11,6 +11,13 @@ log_dir: "~/meta_critics/logs/halfcheetahvel"
 model_dir: "~/meta_critics/models/halfcheetahvel"
 create_dir: True
 
+# if we need rename dtypes. It important if model see a float64
+# and it doesn't know about that you will hit all sort of issues
+trajectory_sampler:
+  remap_types: True
+  reward_dtype: torch.float64
+
+
 trainer:
   use_wandb: True
   # Discount factor gamma.
@@ -29,9 +36,6 @@ policy_network:
   hidden_sizes: [64, 64]
   activation: "tanh"
 
-trajectory_sampler:
-  remap_types: True
-  reward_dtype: torch.float64
 
 meta_task:
   num_meta_test: 10

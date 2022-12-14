@@ -1,8 +1,6 @@
 """
-this ported env for mujoco 1.2 /  1.3 it uses
+this a ported version for env for mujoco 2.2 > it uses
 direct python - C binding.  i.e don't use mujoco-py
-
-
 Ant environment with target position.
 
 The ant follows the dynamics from MuJoCo [1], and receives at each
@@ -19,6 +17,9 @@ distribution on [-3, 3]^2.
 Bunch of fixed added to fix all mujoco
 Mus
 """
+from typing import Any, List
+
+import mujoco
 import numpy as np
 from gym.envs.mujoco.ant_v4 import AntEnv as AntEnv_
 from gym.envs.mujoco import MujocoEnv
@@ -65,29 +66,34 @@ class AntEnv(AntEnv_):
 
     def viewer_setup(self):
         """
-
         :return:
         """
-        camera_id = self.model.camera_name2id('track')
+        self.viewer.cam.type = 2
+        camera_name = "track"
+        camera_id = camera_id = mujoco.mj_name2id(
+                            self.model,
+                            mujoco.mjtObj.mjOBJ_CAMERA,
+                            camera_name,
+                        )
         self.viewer.cam.type = 2
         self.viewer.cam.fixedcamid = camera_id
         self.viewer.cam.distance = self.model.stat.extent * 0.35
         # Hide the overlay
         self.viewer._hide_overlay = True
 
-    def render(self, mode='human'):
-        """
-        :param mode:
-        :return:
-        """
-        if mode == 'rgb_array':
-            self._get_viewer(mode).render()
-            # window size used for old mujoco-py:
-            width, height = 500, 500
-            data = self._get_viewer(mode).read_pixels(width, height, depth=False)
-            return data
-        elif mode == 'human':
-            self._get_viewer(mode).render()
+    # def render(self, mode='human'):
+    #     """
+    #     :param mode:
+    #     :return:
+    #     """
+    #     if mode == 'rgb_array':
+    #         self._get_viewer(mode).render()
+    #         # window size used for old mujoco-py:
+    #         width, height = 500, 500
+    #         data = self._get_viewer(mode).read_pixels(width, height, depth=False)
+    #         return data
+    #     elif mode == 'human':
+    #         self._get_viewer(mode).render()
 
 
 class AntVelEnv(AntEnv):
@@ -111,7 +117,6 @@ class AntVelEnv(AntEnv):
 
     def __init__(self, task=None, low=0.0, high=3.0, **kwargs):
         """
-
         :param task:
         :param low:
         :param high:
@@ -125,17 +130,16 @@ class AntVelEnv(AntEnv):
         self.high = high
         self._goal_vel = task.get('velocity', 0.0)
         self._action_scaling = None
-        super(AntVelEnv, self).__init__()
+        super(AntVelEnv, self).__init__(**kwargs)
 
     def step(self, action):
         """
-
         :param action:
         :return:
         """
         xposbefore = self.get_body_com("torso")[0]
-        print("x", xposbefore)
-        print("x ", self.get_body_com("torso")[0])
+        # print("x", xposbefore)
+        # print("x ", self.get_body_com("torso")[0])
 
         self.do_simulation(action, self.frame_skip)
         xposafter = self.get_body_com("torso")[0]
@@ -160,7 +164,7 @@ class AntVelEnv(AntEnv):
                      reward_contact=-contact_cost,
                      reward_survive=survive_reward,
                      task=self._task)
-        return observation, reward, done, False, infos
+        return observation, reward, done, self.terminated, infos
 
     def sample_tasks(self, num_tasks):
         velocities = self.np_random.uniform(self.low, self.high, size=(num_tasks,))
@@ -191,9 +195,8 @@ class AntDirEnv(AntEnv):
         (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
     """
 
-    def __init__(self, task=None):
+    def __init__(self, task=None, **kwargs):
         """
-
         :param task:
         """
         if task is None:
@@ -202,9 +205,13 @@ class AntDirEnv(AntEnv):
         self._task = task
         self._goal_dir = task.get('direction', 1)
         self._action_scaling = None
-        super(AntDirEnv, self).__init__()
+        super(AntDirEnv, self).__init__(**kwargs)
 
     def step(self, action):
+        """
+        :param action:
+        :return:
+        """
         xposbefore = self.get_body_com("torso")[0]
         self.do_simulation(action, self.frame_skip)
         xposafter = self.get_body_com("torso")[0]
@@ -227,34 +234,55 @@ class AntDirEnv(AntEnv):
                      reward_contact=-contact_cost,
                      reward_survive=survive_reward,
                      task=self._task)
-        return observation, reward, done, False, infos
+        return observation, reward, done, self.terminated, infos
 
     def sample_tasks(self, num_tasks):
+        """
+
+        :param num_tasks:
+        :return:
+        """
         directions = 2 * self.np_random.binomial(1, p=0.5, size=(num_tasks,)) - 1
         tasks = [{'direction': direction} for direction in directions]
         return tasks
 
     def reset_task(self, task):
+        """
+
+        :param task:
+        :return:
+        """
         self._task = task
         self._goal_dir = task['direction']
 
 
 class AntPosEnv(AntEnv):
 
-    def __init__(self, task=None, low=-3.0, high=3.0):
-        super(AntPosEnv, self).__init__()
+    def __init__(self, task=None, low=-3.0, high=3.0, **kwargs):
+        """
+
+        :param task:
+        :param low:
+        :param high:
+        :param kwargs:
+        """
 
         if task is None:
             task = {}
-
         self._task = task
         self.low = low
         self.high = high
 
         self._goal_pos = task.get('position', np.zeros((2,), dtype=np.float32))
         self._action_scaling = None
+        super(AntPosEnv, self).__init__(**kwargs)
 
     def step(self, action):
+        """
+
+        :param action:
+        :return:
+        """
         self.do_simulation(action, self.frame_skip)
         xyposafter = self.get_body_com("torso")[:2]
 
@@ -270,6 +298,7 @@ class AntPosEnv(AntEnv):
         state = self.state_vector()
         notdone = np.isfinite(state).all() and 0.2 <= state[2] <= 1.0
         done = not notdone
+
         infos = dict(reward_goal=goal_reward,
                      reward_ctrl=-ctrl_cost,
                      reward_contact=-contact_cost,
@@ -277,7 +306,12 @@ class AntPosEnv(AntEnv):
                      task=self._task)
         return observation, reward, done, False, infos
 
-    def sample_tasks(self, num_tasks):
+    def sample_tasks(self, num_tasks) -> List[dict[str, Any]]:
+        """
+
+        :param num_tasks:
+        :return:
+        """
         positions = self.np_random.uniform(self.low, self.high, size=(num_tasks, 2))
         tasks = [{'position': position} for position in positions]
         return tasks

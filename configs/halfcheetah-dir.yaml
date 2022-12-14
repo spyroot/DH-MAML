@@ -9,6 +9,8 @@ log_dir: "~/meta_critics/logs/halfcheetahdir"
 model_dir: "~/meta_critics/models/halfcheetahdir"
 create_dir: True
 
+# if we need rename dtypes. It important if model see a float64
+# and it doesn't know about that you will hit all sort of issues
 trajectory_sampler:
   remap_types: True
   reward_dtype: torch.float64

@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import warnings
+from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Optional, List
 
@@ -22,6 +23,22 @@ class RunningSpecError(Exception):
 
 
 class RunningSpec:
+    mandatory_keys = ['num_batches', 'num_meta_test', 'num_meta_task', 'num_trajectory', 'meta_test_freq',
+                      'gamma', 'workers',
+                      'experiment_name',
+                      'env_name',
+                      'wandb.entity', 'wandb.project', 'trajectory_sampler.remap_types',
+                      'trajectory_sampler.reward_dtype',
+                      'model_root', 'log_dir', 'create_dir', 'trainer.use_wandb', 'trainer.type', 'trainer.save_freq',
+                      'trainer.meta_test_freq', 'trainer.use_gae', 'trainer.gamma_factor', 'trainer.gae_lambda_factor',
+                      'trainer.use_discount_gamma', 'trainer.resume', 'trainer.num-workers',
+                      'policy_network.hidden_sizes',
+                      'policy_network.activation', 'meta_task.num_batches', 'meta_task.num_meta_task',
+                      'meta_task.num_trajectory', 'meta_task.num_steps', 'meta_task.fast_lr', 'meta_task.first_order',
+                      'model.name', 'model.model_type', 'model.max_kl', 'model.cg_iters', 'model.cg_damping',
+                      'model.ls_max_steps', 'model.ls_backtrack_ratio'
+                     ]
+
     def __init__(self, settings, mode, current_dir: Optional[str] = "."):
         """
         :param settings:
@@ -269,7 +286,10 @@ class RunningSpec:
         """
         if root is None:
             self._running_config[k] = val.strip()
-            setattr(self, k, val.strip())
+            if isinstance(val, str):
+                setattr(self, k, val.strip())
+            else:
+                setattr(self, k, val)
             return True
 
         if root is not None:
@@ -277,7 +297,15 @@ class RunningSpec:
                 self._running_config[root] = {}
                 setattr(self, root, {})
             section = self._running_config[root]
-            section[k] = val.strip()
+            if isinstance(val, str):
+                section[k] = val.strip()
+            else:
+                section[k] = val
+
+    def _update(self, from_argparse: argparse.Namespace):
+
+        for k, v in self._running_config.items():
+            self._running_config
 
     def update_running_config(self, config=None):
         """Updates running config it takes either generic dict or settings from args.
@@ -309,17 +337,17 @@ class RunningSpec:
 
     def is_test(self):
         return self._mode == AppSelector.TestModel \
-               or self._mode == AppSelector.TrainTestModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestModel \
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def is_train(self):
         return self._mode == AppSelector.TranModel \
-               or self._mode == AppSelector.TrainTestModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestModel \
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def is_plot(self):
         return self._mode == AppSelector.PlotModel \
-               or self._mode == AppSelector.TrainTestPlotModel
+            or self._mode == AppSelector.TrainTestPlotModel
 
     def __str__(self):
         return str(self.show())
@@ -342,6 +370,9 @@ class RunningSpec:
             _config_section = self._running_config[root]
 
         k = k.lower().strip().replace("-", "_")
+        if _config_section is None:
+            raise RunningSpecError("Configuration file is none.")
+
         if k in _config_section:
             return True
 
@@ -355,7 +386,6 @@ class RunningSpec:
 
     def _as_dict(self, _iter, _final_dict, skip_words):
         """
-
         :param _iter:
         :param _final_dict:
         :return:
@@ -366,15 +396,67 @@ class RunningSpec:
             else:
                 if self._check_skip(skip_words, k):
                     _final_dict[k] = v
-
                     continue
-        # return _final_dict
 
-    def as_dict(self, ):
-        """
+    def as_dict(self, skip_config: Optional[List[str]] = ['debug', 'file', 'dir', 'train', 'tune', 'plot']):
+        """ Filter config and output only dict with key that we need, wandb for example
         :return:
         """
         _final_dict = {}
-        skip_words = ['debug', 'file', 'dir', 'train', 'tune', 'plot']
-        self._as_dict(self._running_config, _final_dict, skip_words)
+        self._as_dict(self._running_config, _final_dict, skip_config)
         return _final_dict
+
+    def flatten_running_config(self):
+        """ Return running config as flatten dict.
+        :return:
+        """
+        if self._running_config is None:
+            return {}
+        return self._flatten_dict(self._running_config)
+
+    @staticmethod
+    def _flatten_dict(d: MutableMapping, parent_key: str = '', sep: str = '.'):
+        """ Flatten config
+        :param d:
+        :param parent_key:
+        :param sep:
+        :return:
+        """
+        return dict(RunningSpec._flatten_dict_gen(d, parent_key, sep))
+
+    @staticmethod
+    def _flatten_dict_gen(d, parent_key, sep):
+        """ Internal
+        :param d:
+        :param parent_key:
+        :param sep:
+        :return:
+        """
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, MutableMapping):
+                yield from RunningSpec._flatten_dict(v, new_key, sep=sep).items()
+            else:
+                yield new_key, v
+
+    def check_running_config(self):
+        """ Filter config and output only dict with key that we need, wandb for example
+        :return:
+        """
+        current_keys = self.flatten_running_config()
+        for k in self.mandatory_keys:
+            if current_keys.get(k) is None:
+                raise RunningSpecError(f"Please make sure spec contains {k} configuration.")
+        return True
+
+    @staticmethod
+    def check_spec_file(path_to_file):
+        """ Filter config and output only dict with key that we need, wandb for example
+        :return:
+        """
+        spec_dict = RunningSpec.load_yaml(path_to_file)
+        current_keys = RunningSpec._flatten_dict(spec_dict)
+        for k in RunningSpec.mandatory_keys:
+            if current_keys.get(k) is None:
+                raise RunningSpecError(f"Please make sure spec contains {k} configuration.")
+        return True

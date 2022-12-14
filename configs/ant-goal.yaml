@@ -7,6 +7,8 @@ env-args:
   normalization_scale: 10.0
   max_episode_steps: 100
 
+# if we need rename dtypes. It important if model see a float64
+# and it doesn't know about that you will hit all sort of issues
 trajectory_sampler:
   remap_types: True
   reward_dtype: torch.float64
