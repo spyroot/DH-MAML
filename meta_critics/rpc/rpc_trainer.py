@@ -189,29 +189,30 @@ class DistributedMetaTrainer:
                     print_green(f"Detected existing model. Loading from {model_file_name}.")
                 self.agent_policy.load_state_dict(state_dict)
 
-    def save_to_file(self, data_dict, train_returns, valid_returns):
-        """
-
-        :param data_dict:
-        :param train_returns:
-        :param valid_returns:
+    def save_to_file(self, data_dict, train_returns, valid_returns) -> None:
+        """THis main called during meta test to save result.
+        :param data_dict: A data dict store all trajectories.
+        :param train_returns: returns computed during a meta test
+        :param valid_returns: validation from meta test.
         :return:
         """
-        model_file_name = self.spec.model_dir
+        try:
+            data_dict['train_returns'] = np.concatenate(train_returns, axis=0)
+            data_dict['valid_returns'] = np.concatenate(valid_returns, axis=0)
+            file_name = self.spec.get("experiment_name")
+            p = Path(self.spec.model_dir)
+            if p.is_dir():
+                file_to_save = p / f"{file_name}.npz"
+                plot_to_save = p / f"{file_name}.png"
+                with open(str(file_to_save), 'wb') as f:
+                    np.savez(f, **data_dict)
 
-        data_dict['train_returns'] = np.concatenate(train_returns, axis=0)
-        data_dict['valid_returns'] = np.concatenate(valid_returns, axis=0)
-        file_name = self.spec.get("experiment_name")
-        p = Path(self.spec.model_dir)
-        if p.is_dir():
-            file_to_save = p / f"{file_name}.npz"
-            plot_to_save = p / f"{file_name}.png"
-            with open(str(file_to_save), 'wb') as f:
-                np.savez(f, **data_dict)
+                data = np.load(str(file_to_save))
+                plt.plot(data)
+                plt.savefig(str(plot_to_save))
 
-            data = np.load(str(file_to_save))
-            plt.plot(data)
-            plt.savefig(str(plot_to_save))
+        except Exception as save_err:
+            print("Failed to save numpy and or a plot, error", save_err)
 
     async def meta_test(self,
                         step: int,
@@ -352,9 +353,15 @@ class DistributedMetaTrainer:
                 self.tf_writer.flush()
 
     async def meta_train(self):
-        """ Meta train a model. Meta train create two parallel asyncio, at each batch step
-        method create task for agent, the agent distribute policy to all observers.
+        """ Meta train a model. Meta train create two parallel asyncio task, at each batch step
+        method create task for each agent, the agent distribute policy to all observers.
         Then meta train ask agent to distribute tasks to all observers.
+
+        Note that progress bar , metrics and the rest Asynchronous. For now, I disabled logging,
+        since torch does something funny with Unix pipe so stdout and stderr even if flush will create issues.
+
+        Also note torch also does something funny with signals.  SO don't add any signal handles.
+        I tried, it led to some nasty issues.
         :return:
         """
 

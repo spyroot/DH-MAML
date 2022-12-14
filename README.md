@@ -91,12 +91,12 @@ Before you run training.  Run
 ```
 
 It will run each scenario in batch size, on GPU and CPU. So you can validate everything is working. 
-![imgs/img.png](training.png)
+![img.png](imgs/training.png)
 
 ## Metrics.
 I serialize all metrics to wandb.ai
 
-![imgs/img.png](wandb.png)
+![img.png](imgs/wandb.png)
 
 ## High level
 
@@ -162,6 +162,8 @@ create_dir: True
 Default settings.  If you want push all metrics to wandb check config spec file.
 This mine and you need adjust that.   **use_wandb: True**
 
+### Ant
+
 ```yaml
 wandb:
   entity: spyroot
@@ -181,10 +183,11 @@ trainer:
 ```
 * Ant fixed
 
-![imgs/img.png](ant.png)
+![imgs/img.png](imgs/ant.png)
 
-Half Cheetah fixed
-![imgs/img_1.png](cheeta.png)
+### Half Cheetah fixed
+
+![imgs/img_1.png](imgs/cheeta.png)
 
 ## References
 This work uses many ideas and the work of many brilliant papers.  
@@ -193,6 +196,14 @@ Key MAML
 Key paper PPO
 torch distribution
 
+## some notes.
+* Note that progress bar , metrics and the rest Asynchronous. For now, I disabled logging,
+since torch does something funny with Unix pipe so stdout and stderr even if flush will create issues.
+
+* Also note torch also does something funny with signals.  SO don't add any signal handles. 
+I tried, it led to some nasty issues.
+
+* Also note that by default I use 16 thread 2 worker so if you are limited on CPU reduce that number.
 
 These experiments are based on the paper:
 
