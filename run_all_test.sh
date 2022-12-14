@@ -8,8 +8,8 @@ python main.py --config configs/halfcheetah-vel.yaml --train --disable_wandb --r
 python main.py --config configs/halfcheetah-dir.yaml --train --disable_wandb --rpc_port 29600 --num_batches 10
 # ant
 python main.py --config configs/ant-dir.yaml --train --disable_wandb --rpc_port 29700 --num_batches 10
-python main.py --config configs/ant-goal.yaml  --train --disable_wandb --rpc_port 29800 --num_batches 10
-python main.py --config configs/ ant-vel.yaml  --train --disable_wandb --rpc_port 29900 --num_batches 10
+python main.py --config configs/ant-goal.yaml --train --disable_wandb --rpc_port 29800 --num_batches 10
+python main.py --config configs/ant-vel.yaml  --train --disable_wandb --rpc_port 29900 --num_batches 10
 
 # CPU only
 # navigation
@@ -20,4 +20,4 @@ python main.py --config configs/halfcheetah-dir.yaml --train --disable_wandb --r
 # ant
 python main.py --config configs/ant-dir.yaml --train --disable_wandb --rpc_port 29350 --num_batches 10 --use-cpu
 python main.py --config configs/ant-goal.yaml  --train --disable_wandb --rpc_port 29330 --num_batches 10 --use-cpu
-python main.py --config configs/ ant-vel.yaml  --train --disable_wandb --rpc_port 29652 --num_batches 10 --use-cpu
+python main.py --config configs/ant-vel.yaml  --train --disable_wandb --rpc_port 29652 --num_batches 10 --use-cpu

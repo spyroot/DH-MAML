@@ -34,7 +34,7 @@ class RunningSpec:
                       'meta_task.num_trajectory', 'meta_task.num_steps', 'meta_task.fast_lr', 'meta_task.first_order',
                       'model.name', 'model.model_type', 'model.max_kl', 'model.cg_iters', 'model.cg_damping',
                       'model.ls_max_steps', 'model.ls_backtrack_ratio'
-                     ]
+                      ]
 
     def __init__(self, settings, mode, current_dir: Optional[str] = "."):
         """
@@ -74,10 +74,12 @@ class RunningSpec:
             raise RunningSpecError("Setting must contain path to a config file.")
 
         p = Path(self._settings.config).expanduser()
+      #  p = p.resolve()
         if not p.is_file():
             raise RunningSpecError(f"Resolve_config_file can't find {self._settings.config}, "
                                    f"please provide a full path.")
         else:
+            print("PATH ", p)
             self._settings.config = str(p)
 
     def _resolve_model_files(self, suffix="") -> None:
@@ -110,7 +112,6 @@ class RunningSpec:
         # load all specs
         self._load_model_spec()
         self._load_model_dir()
-
         # resolve all model files
         self._resolve_model_files()
 

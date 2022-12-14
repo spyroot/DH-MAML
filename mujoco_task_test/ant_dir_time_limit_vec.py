@@ -1,20 +1,50 @@
-"""
-Note main use mp.span hence it will fork to separate pids.
-Mus
-"""
+# AntDir-v4 test , general test for ant with fixed env fixed time limit.
+# it should render and you should see ant and it should stop at 100 step
+# Mus
+import argparse
+import os
+import sys
+import torch
+from gym.wrappers import TimeLimit
+from meta_critics.envs import *
+import gym
+
+#
+# from ..app_globals import SpecTypes, get_running_mode
+# from ..meta_critics.app_globals import AppSelector
+# from ..meta_critics.running_spec import RunningSpec, RunningSpecError
+
+env = gym.make('AntDir-v4', render_mode="human")
+env = TimeLimit(env, max_episode_steps=100)
 import argparse
 import os
 import sys
 from pathlib import Path
 import glob
-
 import torch
-import torch.multiprocessing as mp
-
 from meta_critics.app_globals import get_running_mode, SpecTypes, AppSelector
 from meta_critics.running_spec import RunningSpecError, RunningSpec
-from meta_critics.rpc.rpc_trainer import run_worker
 
+
+# observation, info = env.reset(seed=42)
+#
+# for i in range(100000):
+#     action = env.action_space.sample()
+#     observation, reward, terminated, truncated, info = env.step(action)
+#     if truncated:
+#         print(f"Pass a test at step {i}")
+#         break
+#     if terminated or truncated:
+#         observation, info = env.reset()
+# env.close()
+# exit(1)
+
+# dir_path = os.path.dirname(os.path.realpath(__file__))
+# parent_dir = Path(dir_path).parent
+# config_file = "configs/ant-vel.yaml"
+# print(config_file)
+
+# env = create_env_from_spec(running_spec)
 
 def check_all_configs(cmd: argparse.Namespace):
     """
@@ -42,8 +72,7 @@ def main(cmd, spec):
     :param spec:
     :return:
     """
-    for world_size in range(cmd.workers, cmd.workers + 1):
-        mp.spawn(run_worker, args=(world_size, spec), nprocs=world_size, join=True)
+
     print("All main done.")
 
 
@@ -52,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('--tune', action='store_true', required=False, help='run ray hyperparameter optimization.')
     parser.add_argument('--test', action='store_true', required=False, help="train model for task")
     parser.add_argument('--plot', action='store_true', required=False, help="test model on task")
-    parser.add_argument('--train', action='store_true', required=False, help="plots test result")
+    parser.add_argument('--train', action='store_true', required=False, default=True, help="plots test result")
     parser.add_argument('--check_specs', action='store_true', required=False,
                         help="will check all spec files for errors.")
     parser.add_argument('--benchmark', action='store_true', required=False, help="will measure "
@@ -125,3 +154,12 @@ if __name__ == '__main__':
         sys.exit(100)
 
     main(args, running_spec)
+
+# envs = BaseVecMetaTaskEnv([env_creator(self.env_name,
+#                                        env_kwargs=env_kwargs,
+#                                        seed=seed,
+#                                        debug=spec.get('debug_env'))
+#                            for _ in range(num_traj)],
+#                           observation_space=env.observation_space,
+#                           action_space=env.action_space,
+#                           debug=False)
