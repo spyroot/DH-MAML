@@ -30,7 +30,8 @@ class MetricReceiver:
         self.ls_steps_metric = torch.empty(num_episodes * 2)
         # execution for update.
         self.step = 0
-        if spec.contains("use_wandb", "trainer") and spec.get("use_wandb", "trainer") \
+        if spec.contains("use_wandb", "trainer") \
+                and spec.get("use_wandb", "trainer") \
                 and spec.disable_wandb == False:
             project = "dh-maml"
             entity = "spyroot"
@@ -53,11 +54,13 @@ class MetricReceiver:
         self.shutdown_flag = threading.Event()
 
         self.__thread1 = threading.Thread(target=self.start_producer,
-                                          args=(self.buffer, self.self_cv, self.self_main_cv))
+                                          args=(self.buffer,
+                                                self.self_cv, self.self_main_cv))
         self.__thread1.daemon = True
         self.__thread1.start()
 
-        self.__thread2 = threading.Thread(target=self.start_consumer, args=(self.buffer, self.self_cv))
+        self.__thread2 = threading.Thread(target=self.start_consumer,
+                                          args=(self.buffer, self.self_cv))
         self.__thread2.daemon = True
         self.__thread2.start()
 

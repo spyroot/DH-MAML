@@ -4,7 +4,11 @@ env_name: "Bandit-K5-v0"
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
-create_dir True:
+create_dir: True
+
+wandb:
+  entity: spyroot
+  project: dh-maml
 
 env-args:
   k: 10
@@ -22,7 +26,8 @@ trajectory_sampler:
 
 
 trainer:
-  sampler: distributed_rpc
+  use_wandb: True
+  type: distributed_rpc
   save_freq: 100
   meta_test_freq: 100
   use_gae: True

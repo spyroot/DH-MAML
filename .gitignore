@@ -6,7 +6,6 @@ __.pytest_cache__/
  meta_critics/__pycache__/*
  *.pyc
 *.pyo
-__pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
@@ -18,7 +17,6 @@ ENV/
 env.bak/
 venv.bak/
 models
-*.py[cod]
 *.iml
 *$py.class
 .idea
@@ -26,7 +24,6 @@ models
 .idea/*
 __pycache__
 __pycache__/*
-*.pyc
 *.xml
  .idea/.idea/DH-MAML.iml
  idea/inspectionProfiles/Project_Default.xml
@@ -39,7 +36,7 @@ wandb
 # C extensions
 *.so
 *.pyc
-
+.idea/DH-MAML.iml
 # Distribution / packaging
 .Python
 build/

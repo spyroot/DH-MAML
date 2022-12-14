@@ -9,6 +9,11 @@ from meta_critics.envs.bandits.bandit_bernoulli_env import *
 from meta_critics.envs.mujoco.ant import *
 
 register(
+    id="rocketlander-v1",
+    entry_point="meta_critics.envs.rocket_lander.envs.rocket_lander:RocketLander",
+)
+
+register(
         'turbulencelander-v0',
         entry_point='meta_critics.wrappers.lander_wrapper:lander_wrapper',
         kwargs={'entry_point': 'meta_critics.envs.lander.lander:TurbulenceLunarLander'}

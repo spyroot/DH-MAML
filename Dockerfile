@@ -157,7 +157,9 @@ dependencies:\n\
 ' >> /root/conda-recipe.yaml
 RUN conda env create --file /root/conda-recipe.yaml
 RUN apt-get install swig -y
+RUN /root/miniconda3/bin/conda activate meta_critic
 RUN pip install gym[all] -U
+RUN pip uninstall mujoco-py
+RUN pip install mujoco -U
 #CMD ["/usr/sbin/sshd", "-D"]
 CMD ["/bin/zsh"]
-

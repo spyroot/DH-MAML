@@ -4,7 +4,11 @@ env_name: "Bandit-K5-v0"
 model_root: "models"  # a root dir so all folder will be under.
 log_dir: "~/meta_critics/logs/bandit_k5"
 model_dir: "~/meta_critics/models/bandit_k5"
-create_dir True:
+create_dir: True
+
+wandb:
+  entity: spyroot
+  project: dh-maml
 
 trajectory_sampler:
 #  reward_dtype: torch.float32
@@ -15,8 +19,9 @@ trajectory_sampler:
 #  action_dtype: torch.float32
 
 trainer:
+  use_wandb: True
   # Discount factor gamma.
-  sampler: distributed_rpc
+  type: distributed_rpc
   save_freq: 20
   meta_test_freq: 100
   use_gae: True
