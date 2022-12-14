@@ -4,6 +4,20 @@
 __pycache__/
 __.pytest_cache__/
  meta_critics/__pycache__/*
+ *.pyc
+*.pyo
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 *.py[cod]
 *$py.class
 .idea
