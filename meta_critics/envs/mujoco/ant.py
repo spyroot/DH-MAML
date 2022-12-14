@@ -25,6 +25,9 @@ from gym.envs.mujoco import MujocoEnv
 
 
 class AntEnv(AntEnv_):
+    """
+     Ant direction fixed, still working on velocity.
+    """
     metadata = {
         "render_modes": [
             "human",
@@ -107,21 +110,33 @@ class AntVelEnv(AntEnv):
     """
 
     def __init__(self, task=None, low=0.0, high=3.0, **kwargs):
-        super(AntVelEnv, self).__init__()
+        """
+
+        :param task:
+        :param low:
+        :param high:
+        :param kwargs:
+        """
         if task is None:
             task = {}
-
-        if task is not None:
-            task.pop(task)
 
         self._task = task
         self.low = low
         self.high = high
         self._goal_vel = task.get('velocity', 0.0)
         self._action_scaling = None
+        super(AntVelEnv, self).__init__()
 
     def step(self, action):
+        """
+
+        :param action:
+        :return:
+        """
         xposbefore = self.get_body_com("torso")[0]
+        print("x", xposbefore)
+        print("x ", self.get_body_com("torso")[0])
+
         self.do_simulation(action, self.frame_skip)
         xposafter = self.get_body_com("torso")[0]
 
