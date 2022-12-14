@@ -447,7 +447,7 @@ class DistributedMetaTrainer:
                 await asyncio.gather(*trainer_episode_consumers, return_exceptions=True)
                 await asyncio.gather(*trainer_metric_consumers, return_exceptions=True)
 
-                # we don't save.
+                # we don't save during benchmark.
                 if not self.is_benchmark:
                     if self.agent.save(episode_step):
                         last_saved = episode_step

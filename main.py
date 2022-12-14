@@ -49,21 +49,26 @@ def main(cmd, spec):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Main DH-MAML")
-    parser.add_argument('--tune', action='store_true', required=False, help='run ray hyperparameter optimization.')
-    parser.add_argument('--test', action='store_true', required=False, help="train model for task")
-    parser.add_argument('--plot', action='store_true', required=False, help="test model on task")
-    parser.add_argument('--train', action='store_true', required=False, help="plots test result")
+    parser.add_argument('--tune', action='store_true', required=False,
+                        help='run ray hyperparameter optimization.')
+    parser.add_argument('--test', action='store_true', required=False,
+                        help="train model for task")
+    parser.add_argument('--plot', action='store_true', required=False,
+                        help="test model on task")
+    parser.add_argument('--train', action='store_true', required=False,
+                        help="plots test result")
     parser.add_argument('--check_specs', action='store_true', required=False,
                         help="will check all spec files for errors.")
-    parser.add_argument('--benchmark', action='store_true', required=False, help="will measure "
-                                                                                 "time of execution for different "
-                                                                                 "number of threads")
-
-    parser.add_argument('--use-cpu', action='store_true', help='if we want enforce cpu only.')
-    parser.add_argument('--config', type=str, required=True, help="a path to the configuration json or yaml file.")
+    parser.add_argument('--benchmark', action='store_true', required=False,
+                        help="will measure time of execution for different number of threads")
+    parser.add_argument('--use-cpu', action='store_true',
+                        help='if we want enforce cpu only.')
+    parser.add_argument('--config', type=str, required=True,
+                        help="a path to the configuration json or yaml file.")
     parser.add_argument('--model_file', type=str, required=False, default="default.th",
                         help="a path to the a model file.")
-    parser.add_argument('--is_verbose', action='store_true', required=False, help="Enable verbose out during test")
+    parser.add_argument('--is_verbose', action='store_true', required=False,
+                        help="Enable verbose out during test")
 
     trainer = parser.add_argument_group('trainer')
     trainer.add_argument('--num_batches', type=int, default=500,
