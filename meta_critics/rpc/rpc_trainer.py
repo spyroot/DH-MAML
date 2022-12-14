@@ -209,9 +209,9 @@ class DistributedMetaTrainer:
             with open(str(file_to_save), 'wb') as f:
                 np.savez(f, **data_dict)
 
-            data = np.load(file_to_save)
+            data = np.load(str(file_to_save))
             plt.plot(data)
-            plt.savefig(plot_to_save)
+            plt.savefig(str(plot_to_save))
 
     async def meta_test(self,
                         step: int,

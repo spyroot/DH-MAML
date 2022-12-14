@@ -30,7 +30,12 @@ Make sure you check the conda recipe file; it has all dependencies.
 WSL2/Linux
 
 ```bash 
+clone https://github.com/spyroot/DH-MAML.git
+# make sure you are im same directory
+ls DH-MAML 
 docker run --privileged --gpus all -it --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -v ${PWD}:/code meta_critic:v1 bash
+cd /code
+
 ```
 
 Note you can run on Windows as well but not native. Currently, the torch distributed doesn't support a window. 
