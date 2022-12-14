@@ -8,19 +8,28 @@ The agent asks each observer to roll out many trajectories based on many tasks. 
 number of trajectories and replays back the agent via RPC to agents.  
 
 The agent first sends all trajectories tensor to the device and passes that data to the algorithm.   
-For example, in the current implementation, it is MAML and TRPO.   Thus, during the meta-training phase, 
+For example, in the current implementation, it is MAML and TRPO. Thus, during the meta-training phase, 
 we first perform the adaption phase for an existing policy after the algorithm uses TRPO semantics to compute 
 new KL terms for the current policy. Finally, the principal agent receives all updates from all the agents. 
+
+* Key papers.
+
+* [MAML] (https://arxiv.org/abs/1703.03400)
+* [TRPO] (https://arxiv.org/abs/1502.05477)
+* [GAE] (https://arxiv.org/abs/1506.02438)
+* [Mujoco](https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
+
 ## Before you run a code 
  
 * Make sure all tests in mujoco_task_test are passing. It is just a main file, so run them and check.
 * Gym introduced number of changes  , more or less I fixed all environments for meta task.
-For example.
-* 
+
+For example. Human render so you can see environments
+```bash
+python ant_dir.py
+python ant_dir_time_limit.py
 ```
-python ant_dir_time_limit.py 
-# this one should stop.
-```
+Will do basic test, the second one should stop. 
 ## Architecture
 ![img_1.png](imgs/img_1.png)
 
