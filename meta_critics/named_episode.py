@@ -12,6 +12,9 @@ NamedEpisode = namedtuple("NamedEpisode",
                            "action_shape",
                            "observation_shape",
                            "max_len",
-                           "batch_size"))
+                           "batch_size",
+                           reward_dtype,
+                           action_dtype,
+                           observations_dtype))
 
 TrajectoryData = namedtuple("TrajectoryData", ("train", "validate"))

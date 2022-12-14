@@ -116,9 +116,13 @@ class AdvantageBatchEpisodes(BaseTrajectory):
         observation_shape = deepcopy(self._observation_shape)
         max_len = deepcopy(self.max_len)
         batch_size = deepcopy(self.batch_size)
+        reward_dtype = deepcopy(self._reward_dtype)
+        action_dtype = deepcopy(self._action_dtype)
+        observation_dtype = deepcopy(self._observation_dtype)
 
         return NamedEpisode(observations, actions, rewards, lengths, advantages,
-                            returns, mask, action_shape, observation_shape, max_len, batch_size)
+                            returns, mask, action_shape, observation_shape,
+                            max_len, batch_size, reward_dtype, action_dtype, observation_dtype)
 
     def clone(self, x):
         """
@@ -137,7 +141,9 @@ class AdvantageBatchEpisodes(BaseTrajectory):
         x.max_len = self.max_len
         x.batch_size = self.batch_size
         x.gamma = self.gamma
-
+        x._reward_dtype = deepcopy(self._reward_dtype)
+        x._action_dtype = deepcopy(self._action_dtype)
+        x._observation_dtype = deepcopy(self._observation_dtype)
         return x
 
     # def bootstrap(self):
@@ -182,6 +188,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
 
     def recompute_advantages(self, baseline, gae_lambda=1.0, normalize=True, debug=False):
         """
+        :param debug:
         :param baseline:
         :param gae_lambda:
         :param normalize:
@@ -322,6 +329,7 @@ class AdvantageBatchEpisodes(BaseTrajectory):
             if self._observation_dtype is None:
                 dt: np.dtype = observation.dtype
                 self._observation_dtype = type_remap[dt.type]
+
             if self._action_dtype is None:
                 if np.isscalar(action):
                     dt: np.dtype = np.dtype(action)
@@ -332,6 +340,10 @@ class AdvantageBatchEpisodes(BaseTrajectory):
             if self._reward_dtype is None:
                 dt: np.dtype = np.dtype(reward)
                 self._reward_dtype = type_remap[dt.type]
+
+            print(self._reward_dtype)
+            print(self._action_dtype)
+            print(self._observation_dtype)
 
             self._observations_list[batch_id].append(observation.astype(observation[0].dtype))
             self._actions_list[batch_id].append(torch.as_tensor(action, device=self.device, dtype=self._action_dtype))

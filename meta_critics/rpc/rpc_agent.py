@@ -351,7 +351,10 @@ class DistributedAgent(GenericRpcAgent, ABC):
                                                lengths=xs.lengths,
                                                rewards=xs.rewards,
                                                mask=xs.mask,
-                                               device=torch.device(device))
+                                               device=torch.device(device),
+                                               reward_dtype=xs.reward_dtype,
+                                               action_dtype=xs.action_dtype,
+                                               observations_dtype=xs.observations_dtype)
 
                     v = AdvantageBatchEpisodes(batch_size=ys.batch_size,
                                                advantages=ys.advantages,
@@ -361,7 +364,11 @@ class DistributedAgent(GenericRpcAgent, ABC):
                                                lengths=ys.lengths,
                                                rewards=ys.rewards,
                                                mask=ys.mask,
-                                               device=torch.device(device))
+                                               device=torch.device(device),
+                                               reward_dtype=ys.reward_dtype,
+                                               action_dtype=ys.action_dtype,
+                                               observations_dtype=ys.observations_dtype
+                                               )
 
                     t.to_gpu()
                     v.to_gpu()
