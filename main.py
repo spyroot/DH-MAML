@@ -17,7 +17,8 @@ from meta_critics.rpc.rpc_trainer import run_worker
 
 
 def check_all_configs(cmd: argparse.Namespace):
-    """
+    """Checks all configuration files and report,
+    if any config invalid.
     :param cmd:
     :return:
     """
@@ -78,11 +79,15 @@ if __name__ == '__main__':
     trainer.add_argument('--num_meta_task', type=int, default=40,
                          help="number of meta tasks per batch Default: 40)")
     trainer.add_argument('--num_trajectory', type=int, default=20,
-                         help="number of trajectory per task per observer to collect. Default 20")
+                         help="number of trajectory per task "
+                              "per observer to collect. Default 20")
+    trainer.add_argument('--save_freq', type=int, default=20,
+                         help="how often checkpoint policy.")
 
     meta_test = parser.add_argument_group('Meta-Test')
     parser.add_argument('--meta_test_freq', type=int, default=20, required=False,
-                        help="A frequency when we want to test")
+                        help="A frequency when we want do a meta test, during training."
+                             "note during meta test, we load a completely new policy")
 
     misc = parser.add_argument_group('Miscellaneous')
     misc.add_argument('--config_type', type=SpecTypes, default=SpecTypes.JSON, help='config file type.')
