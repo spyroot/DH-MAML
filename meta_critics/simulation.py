@@ -211,8 +211,8 @@ class RemoteSimulation:
             counter = 0
             while True:
                 # somewhere bug in gym.. timer
-                if counter == 100:
-                    break
+                # if counter == 100:
+                #     break
                 if self.envs.is_terminated() or self.envs.is_truncated():
                     break
                 if self.envs.is_done():
@@ -220,6 +220,7 @@ class RemoteSimulation:
                 observations_tensor = torch.from_numpy(observations)
                 if observations_tensor is None:
                     continue
+
                 # if self.debug:
                 # if torch.all(observations_tensor == 0.0):
                 # if self.debug:
