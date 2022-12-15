@@ -30,7 +30,7 @@ trainer:
   gae_lambda_factor: 1.0
   use_discount_gamma: True
   resume: True
-  num-workers: 1
+  num-workers: 2
 
 # Policy network
 policy_network:

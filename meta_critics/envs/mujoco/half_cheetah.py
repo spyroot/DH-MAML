@@ -21,8 +21,6 @@ class HalfCheetahEnv(HalfCheetahEnv_):
                  exclude_current_positions_from_observation=True,
                  **kwargs):
         super(HalfCheetahEnv, self).__init__(**kwargs)
-        # print("TASK", task)
-        print("KWARGS", kwargs)
 
     # def _get_obs(self):
     #     return np.concatenate([
@@ -135,6 +133,7 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
         """
         self._task = task
         self._goal_vel = task['velocity']
+
     def reset(
         self,
         *,
@@ -169,9 +168,6 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         """
         if task is None:
             task = {}
-
-        print("TASK", task)
-        print("KWARGS", kwargs)
 
         self._task = task
         self._goal_dir = task.get('direction', 1)
@@ -214,6 +210,7 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         """
         self._task = task
         self._goal_dir = task['direction']
+
     def reset(
         self,
         *,
