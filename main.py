@@ -86,7 +86,7 @@ if __name__ == '__main__':
                          help="how often checkpoint policy.")
 
     meta_test = parser.add_argument_group('Meta-Test')
-    parser.add_argument('--meta_test_freq', type=int, default=20, required=False,
+    parser.add_argument('--meta_test_freq', type=int, default=100, required=False,
                         help="A frequency when we want do a meta test, during training."
                              "note during meta test, we load a completely new policy")
 

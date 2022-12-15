@@ -452,9 +452,6 @@ class DistributedMetaTrainer:
             await self.agent.broadcast_rref()
             await self.agent.broadcast_policy()
 
-            print(self._first_step)
-            print(self.num_batches)
-
             from tqdm.asyncio import trange, tqdm
             tqdm_iter = tqdm(range(self._first_step, num_batches + 1),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
