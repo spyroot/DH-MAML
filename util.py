@@ -12,6 +12,7 @@ def create_env_from_spec(running_spec: RunningSpec,
                          disable_env_checker: Optional[bool] = None,
                          max_episode_steps: Optional[int] = 0) -> gym.Env:
     """Creates a gum environment. This method mainly used to infer observation and action space.
+    :param autoreset:
     :param disable_env_checker:
     :param apply_api_compatibility:
     :param max_episode_steps:
@@ -32,13 +33,13 @@ def create_env_from_spec(running_spec: RunningSpec,
 
     if hasattr(running_spec, 'env_name'):
         if env_args is None:
-            print("Case one")
             env = gym.make(running_spec.env_name, render_mode=render_mode)
         else:
-            print("Case two")
-            env = gym.make(running_spec.env_name,
-                           autoreset=False, apply_api_compatibility=None,
-                           disable_env_checker=None, render_mode=render_mode, **env_args)
+            env = gym.make(running_spec.env_name, **env_args)
+
+            # env = gym.make(running_spec.env_name,
+            #                autoreset=False, apply_api_compatibility=None,
+            #                disable_env_checker=None, render_mode=render_mode, **env_args)
 
         if do_close:
             env.close()
