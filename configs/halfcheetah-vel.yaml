@@ -1,5 +1,6 @@
 experiment_name: "HalfCheetahVel"
 env_name: "HalfCheetahVel-v4"
+
 env-args:
   low: 0.0
   high: 2.0
@@ -45,7 +46,7 @@ policy_network:
 meta_task:
   num_meta_test: 10
   num_meta_task: 40     # number of meta task in batch
-  num_trajectory: 20   # Number of trajectories to sample for each task.
+  num_trajectory: 20    # Number of trajectories to sample for each task.
   num_steps: 1          # Number of gradient steps in the inner loop / fast adaptation.
   fast_lr: 0.1          # Step size for each gradient step in the inner loop / fast adaptation.
   num_batches: 500      # outer-loop updates

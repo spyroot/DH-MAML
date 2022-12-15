@@ -7,6 +7,7 @@ import json
 import os
 import warnings
 from collections.abc import MutableMapping
+from copy import deepcopy
 from pathlib import Path
 from typing import Optional, List
 
@@ -74,12 +75,11 @@ class RunningSpec:
             raise RunningSpecError("Setting must contain path to a config file.")
 
         p = Path(self._settings.config).expanduser()
-      #  p = p.resolve()
+        #p = p.resolve()
         if not p.is_file():
             raise RunningSpecError(f"Resolve_config_file can't find {self._settings.config}, "
                                    f"please provide a full path.")
         else:
-            print("PATH ", p)
             self._settings.config = str(p)
 
     def _resolve_model_files(self, suffix="") -> None:
@@ -117,7 +117,7 @@ class RunningSpec:
 
     @staticmethod
     def load_json(_filename: str, is_strict: Optional[bool] = False):
-        """Load json spec.
+        """Load from json a spec file.
         :param is_strict: will throw error.
         :param _filename: path to a file.
         :return:
@@ -138,7 +138,7 @@ class RunningSpec:
 
     @staticmethod
     def load_yaml(_filename: str, is_strict: Optional[bool] = False):
-        """Load config file from yaml.
+        """Load config file from a yaml file.
         :param is_strict: will throw error.
         :param _filename: path to a file.
         :return: config file.
@@ -172,6 +172,7 @@ class RunningSpec:
             p = Path(self._current_dir).expanduser() / self._moder_root / self.experiment_name
 
         p = p.resolve()
+
         if p.is_file():
             raise FileExistsError(f"{self._model_dir} is a file.")
 
@@ -179,13 +180,16 @@ class RunningSpec:
             RunningSpecError(f"You don't have access to write {self._current_dir}.")
 
         if not os.path.exists(p):
-            print(f"Creating directory {p}")
+            print(f"Creating directory {self._moder_dir} for a model.")
             os.makedirs(p, exist_ok=True)
 
         # register internal attr
         self._model_dir = str(p)
-        self.update('model_dir', str(p))
+        self.update('model_dir', self._model_dir)
         return True
+
+    def get_model_dir(self):
+        return self._model_dir
 
     def _load_model_spec(self):
         """Load model configuration files to running state.
@@ -285,7 +289,7 @@ class RunningSpec:
         if root is None:
             self._running_config[k] = val.strip()
             if isinstance(val, str):
-                setattr(self, k, val.strip())
+                setattr(self, k, deepcopy(val.strip()))
             else:
                 setattr(self, k, val)
             return True

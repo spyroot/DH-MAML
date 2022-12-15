@@ -1,5 +1,4 @@
-"""
-Note main use mp.span hence it will fork to separate pids.
+"""Note main use mp.span hence it will fork to separate pids.
 Mus
 """
 import argparse
@@ -75,7 +74,9 @@ if __name__ == '__main__':
     trainer.add_argument('--num_batches', type=int, default=500,
                          help="number of batches. Default 500.")
     trainer.add_argument('--num_meta_test', type=int, default=10,
-                         help="number of meta test batch perform. Default 10")
+                         help="number of meta test batch perform. "
+                              "i.e we perform num meta test iteration "
+                              "for K task, Default 10.")
     trainer.add_argument('--num_meta_task', type=int, default=40,
                          help="number of meta tasks per batch Default: 40)")
     trainer.add_argument('--num_trajectory', type=int, default=20,
@@ -127,11 +128,17 @@ if __name__ == '__main__':
 
         # list of command we allow to overwrite from cmd
         running_spec.update('num_batches', args.num_batches, root='meta_task')
+        running_spec.update('save_freq', args.save_freq, root='trainer')
         running_spec.update('meta_test_freq', args.meta_test_freq, root='trainer')
+        running_spec.update('num_meta_test', args.num_meta_test, root='meta_task')
+        running_spec.update('num_meta_task', args.num_meta_task, root='meta_task')
         running_spec.check_running_config()
 
     except RunningSpecError as r_except:
         print(f"Error in file {args.config}, error:", r_except)
         sys.exit(100)
 
-    main(args, running_spec)
+    try:
+        main(args, running_spec)
+    except KeyboardInterrupt as kb:
+        print("Shutting please wait.")

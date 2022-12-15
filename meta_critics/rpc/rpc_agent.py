@@ -18,7 +18,7 @@ from torch.distributed.rpc import RRef, remote
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from meta_critics.ioutil.term_util import print_red
+from meta_critics.ioutil.term_util import print_red, print_green
 from meta_critics.policies.policy import Policy
 from meta_critics.rpc.async_logger import AsyncLogger
 from meta_critics.rpc.generic_rpc_agent import GenericRpcAgent
@@ -403,14 +403,14 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 episode_queue.task_done()
 
     def save(self, step) -> bool:
-        """Saving model if failed will not raise exception.
+        """Saves a model if failed it will not raise exception.
         :return:
         """
         try:
             save_freq = self.spec.get('save_freq', 'trainer')
             if step > 0 and step % save_freq == 0:
                 model_file_name = self.spec.get('model_state_file', 'model_files')
-                print(f"Saving model to a file. {model_file_name}")
+                print_green(f"Saving model to a file. {model_file_name}")
                 step_checkpoint = f"{model_file_name}_{step}"
 
                 with open(model_file_name, 'wb') as f:
@@ -422,7 +422,6 @@ class DistributedAgent(GenericRpcAgent, ABC):
                 with open(step_checkpoint, 'wb') as f:
                     state_dict["last_step"] = step
                     torch.save(state_dict, f)
-
                 return True
         except Exception as err:
             print("Error failed to save model:", err)

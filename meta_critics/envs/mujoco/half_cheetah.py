@@ -3,7 +3,7 @@ This meta task environment for v4 Cheetah.
 THere are a bunch of fixes here , it should work in any new GYm / Mujoco environment
 Mus
 """
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import mujoco
 import numpy as np
 from gym import utils
@@ -14,6 +14,16 @@ from gym.envs.mujoco.half_cheetah_v4 import HalfCheetahEnv as HalfCheetahEnv_
 
 
 class HalfCheetahEnv(HalfCheetahEnv_):
+    def __init__(self,
+                 forward_reward_weight=1.0,
+                 ctrl_cost_weight=0.1,
+                 reset_noise_scale=0.1,
+                 exclude_current_positions_from_observation=True,
+                 **kwargs):
+        super(HalfCheetahEnv, self).__init__(**kwargs)
+        # print("TASK", task)
+        print("KWARGS", kwargs)
+
     # def _get_obs(self):
     #     return np.concatenate([
     #         self.data.qpos.flat[1:],
@@ -33,6 +43,14 @@ class HalfCheetahEnv(HalfCheetahEnv_):
         self.viewer.cam.distance = self.model.stat.extent * 0.35
         # Hide the overlay
         self.viewer._hide_overlay = True
+
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        return super().reset(seed=seed)
 
     # def render(self, mode='human'):
     #     if mode == 'rgb_array':
@@ -82,7 +100,6 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
 
     def step(self, action):
         """
-
         """
         xposbefore = self.data.qpos[0]
         self.do_simulation(action, self.frame_skip)
@@ -118,6 +135,13 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
         """
         self._task = task
         self._goal_vel = task['velocity']
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        return super().reset(seed=seed)
 
 
 class HalfCheetahDirEnv(HalfCheetahEnv):
@@ -145,6 +169,9 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         """
         if task is None:
             task = {}
+
+        print("TASK", task)
+        print("KWARGS", kwargs)
 
         self._task = task
         self._goal_dir = task.get('direction', 1)
@@ -187,3 +214,10 @@ class HalfCheetahDirEnv(HalfCheetahEnv):
         """
         self._task = task
         self._goal_dir = task['direction']
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        return super().reset(seed=seed)

@@ -27,7 +27,7 @@ class BaseSyncVectorEnv2(SyncVectorEnv, ABC):
                  out: Optional[EnvType] = EnvType.NdArray,
                  **kwargs):
         """
-        Base vector environment.
+        Base vector environment
         :param env_fns:  Iterator that emits callback, each callback emit gym or gym like env
         :param observation_space: vectorized observation space
         :param action_space:  vectorized action space

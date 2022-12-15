@@ -9,8 +9,8 @@ from meta_critics.envs.bandits.bandit_bernoulli_env import *
 from meta_critics.envs.mujoco.ant import *
 
 register(
-    id="rocketlander-v1",
-    entry_point="meta_critics.envs.rocket_lander.envs.rocket_lander:RocketLander",
+        id="rocketlander-v1",
+        entry_point="meta_critics.envs.rocket_lander.envs.rocket_lander:RocketLander",
 )
 
 register(
@@ -33,7 +33,6 @@ for k in [5, 10, 50]:
             entry_point='meta_critics.envs.bandits.bandit_bernoulli_env:BernoulliBanditEnv',
             kwargs={'k': k}
     )
-
 
 for k in [5, 10, 50]:
     register(
@@ -65,29 +64,44 @@ register(
 register(
         'AntVel-v4',
         entry_point='meta_critics.wrappers.mujoco_wrapper:mujoco_wrapper',
-        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntVelEnv'}
+        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntVelEnv',
+                'max_episode_steps': 100,
+                'normalization_scale': 10.0},
+        max_episode_steps=100
 )
 
 register(
         'AntDir-v4',
         entry_point='meta_critics.wrappers.mujoco_wrapper:mujoco_wrapper',
-        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntDirEnv'}
+        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntDirEnv',
+                'max_episode_steps': 100,
+                'normalization_scale': 10.0},
+        max_episode_steps=100
 )
 
 register(
         'AntPos-v4',
         entry_point='meta_critics.wrappers.mujoco_wrapper:mujoco_wrapper',
-        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntPosEnv'}
+        kwargs={'entry_point': 'meta_critics.envs.mujoco.ant:AntPosEnv',
+                'max_episode_steps': 100,
+                'normalization_scale': 10.0},
+        max_episode_steps=100
 )
 
 register(
         'HalfCheetahVel-v4',
         entry_point='meta_critics.wrappers.mujoco_wrapper:mujoco_wrapper',
-        kwargs={'entry_point': 'meta_critics.envs.mujoco.half_cheetah:HalfCheetahVelEnv'}
+        kwargs={'entry_point': 'meta_critics.envs.mujoco.half_cheetah:HalfCheetahVelEnv',
+                'max_episode_steps':  100,
+                'normalization_scale': 10.0},
+        max_episode_steps=100
 )
 
 register(
         'HalfCheetahDir-v4',
         entry_point='meta_critics.wrappers.mujoco_wrapper:mujoco_wrapper',
-        kwargs={'entry_point': 'meta_critics.envs.mujoco.half_cheetah:HalfCheetahDirEnv'}
+        kwargs={'entry_point': 'meta_critics.envs.mujoco.half_cheetah:HalfCheetahDirEnv',
+                'max_episode_steps':  100,
+                'normalization_scale': 10.0},
+        max_episode_steps=100
 )

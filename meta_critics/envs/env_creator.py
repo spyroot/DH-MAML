@@ -16,6 +16,7 @@ class env_creator(object):
                  env_kwargs=None,
                  seed: Optional[int] = None,
                  debug: Optional[bool] = False,
+                 max_episode_steps: Optional[int] = None,
                  device: Optional[torch.device] = 'cpu',
                  check_env: Optional[bool] = "False"):
         """

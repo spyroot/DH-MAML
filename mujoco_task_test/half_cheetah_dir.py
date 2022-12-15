@@ -3,6 +3,7 @@
 # Mus
 import meta_critics.envs.mujoco.ant
 import gym
+
 env = gym.make('HalfCheetahDir-v4', render_mode="human")
 
 observation, info = env.reset(seed=42)

@@ -11,6 +11,7 @@ from typing import Tuple, List, Optional, Dict, Any
 
 import numpy as np
 import torch
+from torch import Tensor
 
 from meta_critics.base_trainer.torch_tools.tensor_tools import string_to_torch_remaping
 from meta_critics.envs.env_creator import env_creator
@@ -101,30 +102,38 @@ class RemoteSimulation:
             print_red(f"Error in meta sample: {err}")
             raise err
 
-    async def meta_tests(self, tasks) -> Tuple[List[Any], List[Any]]:
+    async def meta_tests(self, tasks) -> Tuple[List[Any], List[Any], Tensor]:
+        """Performs meta test by sampling from a policy.
+        :param tasks:
+        :return:
+        """
         try:
             trajectory_train = []
             meta_test_episodes = []
+            tasks_pg_loss = torch.empty(len(tasks))
             for i, task in enumerate(tasks):
                 self.envs.reset_task(task)
-                _meta_train, _meta_test = await self.meta_test()
+                _meta_train, _meta_test, pg_loss = await self.meta_test()
+                tasks_pg_loss[i] = pg_loss
                 trajectory_train.append(_meta_train)
                 meta_test_episodes.append(_meta_test)
         except Exception as err:
             print_red(f"Error in meta sample: {err}")
             raise err
 
-        return trajectory_train, meta_test_episodes
+        return trajectory_train, meta_test_episodes, tasks_pg_loss
 
-    async def meta_test(self) -> Tuple[List[AdvantageBatchEpisodes], AdvantageBatchEpisodes]:
+    async def meta_test(self) -> tuple[list[AdvantageBatchEpisodes], AdvantageBatchEpisodes, Tensor]:
         """
         :return:
         """
         params = None
         trajectory_train = []
+        pg_loss = torch.empty(self.num_steps)
         for step in range(self.num_steps):
             train_episodes = self.create_episodes(params=params)
             loss = reinforce_loss(self.policy, train_episodes, W=params)
+            pg_loss[step] = loss
             if self.debug:
                 print_red(f"reinforce_loss: {loss}")
             params = self.policy.update_params(loss, params=params,
@@ -132,7 +141,7 @@ class RemoteSimulation:
                                                first_order=True)
             trajectory_train.append(train_episodes)
 
-        return trajectory_train, self.create_episodes(params=params)
+        return trajectory_train, self.create_episodes(params=params), pg_loss
 
     async def sample(self, queue: asyncio.Queue) -> None:
         """
@@ -224,7 +233,6 @@ class RemoteSimulation:
                 actions_tensor = self.policy(observations_tensor, W=params).sample()
                 actions = actions_tensor.cpu().numpy()
                 new_observations, rewards, _, _, infos = self.envs.step(actions)
-
                 # print(f"yield batch {infos['batch_ids']}, counter={counter}")
                 counter += 1
                 batch_ids = infos['batch_ids']

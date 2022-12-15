@@ -16,7 +16,8 @@ from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
 from meta_critics.base_trainer.internal.utils import to_numpy
-from meta_critics.ioutil.term_util import print_red, print_green
+from meta_critics.envs.env_creator import env_creator
+from meta_critics.ioutil.term_util import print_red, print_green, print_blue
 from meta_critics.models.concurrent_trpo import ConcurrentMamlTRPO
 from meta_critics.modules.baseline import LinearFeatureBaseline
 from meta_critics.policies.policy_creator import PolicyCreator
@@ -116,7 +117,7 @@ class DistributedMetaTrainer:
         self.self_logger.emit("Test 1")
         self.loop = asyncio.new_event_loop()
         self._last_episode = None
-        self._first_step = self.spec.get("num_batches", "root=meta_task")
+        self._first_step = self.spec.get("num_batches", root="meta_task")
         self._experiment_name = None
         # internal state
         self._started = False
@@ -141,7 +142,7 @@ class DistributedMetaTrainer:
             _log_dir_timestamp = f"{_log_dir}/{suffix}"
             self.log_dir = resole_primary_dir(_log_dir_timestamp, create_if_needed=True)
             self.spec.update("log_dir", self.log_dir)
-        print(f"Tensorboard log location. {self.log_dir}")
+        print_green(f"Tensorboard log location. {self.log_dir}")
         self.tf_writer = SummaryWriter(log_dir=self.log_dir)
 
     async def start(self) -> None:
@@ -195,7 +196,8 @@ class DistributedMetaTrainer:
                     else:
                         self._first_step = last_step
                     state_dict.pop("last_step")
-                    print_green(f"Detected existing model. Loading from {model_file_name} from {last_step}.")
+                    print_green(f"Detected existing model. "
+                                f"Loading from {model_file_name} from checkpoint {last_step}.")
                 else:
                     print_green(f"Detected existing model. Loading from {model_file_name}.")
                 self.agent_policy.load_state_dict(state_dict)
@@ -210,8 +212,10 @@ class DistributedMetaTrainer:
         try:
             data_dict['train_returns'] = np.concatenate(train_returns, axis=0)
             data_dict['valid_returns'] = np.concatenate(valid_returns, axis=0)
+
             file_name = self.spec.get("experiment_name")
-            p = Path(self.spec.model_dir)
+            p = Path(self.spec.get_model_dir())
+            print_green("Saving result to directory: {}".format(str(p)))
             if p.is_dir():
                 file_to_save = p / f"{file_name}.npz"
                 plot_to_save = p / f"{file_name}.png"
@@ -233,8 +237,8 @@ class DistributedMetaTrainer:
                         flash_io: Optional[bool] = False,
                         num_meta_test: Optional[bool] = 10,
                         is_verbose: Optional[bool] = False) -> None:
-        """
-        Perform a meta-test.  It loads new policy from saved model and test on a new environment.
+        """Perform a main meta-test.  Pass, It loads new policy from saved model
+        and test on a new environment.
         Each environment created from own seed. So agent seen environment.
 
         A frequency when to meta test dictated by meta_test_freq configuration in spec.
@@ -245,6 +249,7 @@ class DistributedMetaTrainer:
 
         :return: Nothing
         """
+
         if is_verbose:
             print_green("Starting meta test.")
         test_freq = self.spec.get('meta_test_freq', 'trainer')
@@ -277,9 +282,8 @@ class DistributedMetaTrainer:
 
         # load policy , note we perform meta test also on target device.
         model_file_name = self.spec.get('model_state_file', 'model_files')
-        print(f"Loading model from {model_file_name}")
+        print_green(f"Loading model from {model_file_name}")
         with open(model_file_name, 'rb') as f:
-            print(f"Loading model from {model_file_name}")
             state_dict = torch.load(f, map_location=torch.device(self.spec.get("device")))
             state_dict.pop("last_step")
             agent_policy.load_state_dict(state_dict)
@@ -287,7 +291,9 @@ class DistributedMetaTrainer:
         try:
             from tqdm.asyncio import trange, tqdm
             tqdm_iter = tqdm(range(1, num_meta_test),
-                             desc=f"Meta-test in progress, dev: {self.spec.get('device')},")
+                             desc=f"Meta-test in for "
+                                  f"{self.spec.get('num_meta_task', 'meta_task')} tasks "
+                                  f"progress, dev: {self.spec.get('device')},")
 
             # update tbar
             tqdm_update_dict = {}
@@ -304,10 +310,11 @@ class DistributedMetaTrainer:
 
                 # sample set of tasks
                 tasks = await self.agent.sample_tasks()
-                meta_task_train, meta_tasks_val = await simulation.meta_tests(tasks)
+                meta_task_train, meta_tasks_val, pg_loss = await simulation.meta_tests(tasks)
                 if is_meta_test:
                     _meta_tasks_train = [e.rewards.sum(dim=0) for e in meta_task_train[0]]
                     _meta_tasks_val = [e.rewards.sum(dim=0) for e in meta_tasks_val]
+
                     data_dict['tasks'].extend(tasks)
                     train_returns.append(to_numpy(_meta_tasks_train))
                     valid_returns.append(to_numpy(_meta_tasks_val))
@@ -341,6 +348,7 @@ class DistributedMetaTrainer:
                 self.tf_writer.add_scalar(f"{prefix_task}/std_task", total_batch_std, step)
 
                 tqdm_iter.set_postfix({
+                    "pg_loss": pg_loss.mean().item(),
                     "rewards": total_batch_reward,
                     "mean": total_batch_mean
                 })
@@ -355,6 +363,9 @@ class DistributedMetaTrainer:
             if is_meta_test:
                 self.save_to_file(data_dict, train_returns, valid_returns)
 
+           # self.spec.human_render
+            await self.human_render()
+
         except Exception as err:
             print("Error during meta-test", err)
             traceback.print_exc()
@@ -362,6 +373,39 @@ class DistributedMetaTrainer:
             print_green("Finished meta test.")
             if flash_io:
                 self.tf_writer.flush()
+
+    async def human_render(self):
+        """
+
+        :return:
+        """
+        if self.agent_policy is None:
+            raise ValueError("Agent policy is none.")
+
+        env = create_env_from_spec(self.spec, render_mode="human", do_close=False, max_episode_steps=10000)
+        # env = env_creator(self.spec.get("env_name"), env_kwargs=self.spec.env_args)()
+        with torch.no_grad():
+            observation, info = env.reset()
+            while True:
+                observations_tensor = torch.from_numpy(observation)
+                # if observations_tensor is None:
+                #     continue
+                actions_tensor = self.agent_policy(observations_tensor, W=None).sample()
+                actions = actions_tensor.cpu().numpy()
+                new_observations, rewards, terminated, truncated, infos = env.step(actions)
+                # print("observation", new_observations)
+                if terminated:
+                    print("terminated !!!")
+                    env.reset()
+                    break
+                if truncated:
+                    print("truncated !!")
+                    env.reset()
+                    break
+                env.reset()
+
+                observation = new_observations
+        env.close()
 
     async def meta_train(self):
         """ Meta train a model. Meta train create two parallel asyncio task, at each batch step
@@ -409,7 +453,7 @@ class DistributedMetaTrainer:
             await self.agent.broadcast_policy()
 
             from tqdm.asyncio import trange, tqdm
-            tqdm_iter = tqdm(range(1, self._first_step + 1),
+            tqdm_iter = tqdm(range(self._first_step, num_batches + 1),
                              desc=f"Training in progress, dev: {self.spec.get('device')},")
             if self.is_benchmark:
                 print_red("Trainer in benchmark mode, no result saved.")
@@ -425,7 +469,7 @@ class DistributedMetaTrainer:
                                                                                           metric_queue,
                                                                                           self.meta_learner,
                                                                                           device=self.spec.get(
-                                                                                              'device')))
+                                                                                                  'device')))
 
                     # a task set to each consumer to pass data after algo performed computation.
                     metric_collector_task = asyncio.create_task(self.agent.metric_dequeue(metric_queue,
@@ -453,6 +497,8 @@ class DistributedMetaTrainer:
                 if not self.is_benchmark:
                     if self.agent.save(episode_step):
                         last_saved = episode_step
+                else:
+                    print_red(f"Skipping model checkpoint phase.")
 
                 self._last_episode = episode_step
 
@@ -539,8 +585,8 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     os.environ['MASTER_PORT'] = spec.get("rpc_port")
     # os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     worker_name = f"worker{rank}"
-    print(f"Starting DH-MAML number of worker threads {spec.num_worker_threads} rpc "
-          f"{spec.rpc_timeout} total number of workers {spec.workers}.")
+    print_blue(f"Starting DH-MAML number of worker threads {spec.num_worker_threads} rpc "
+               f"{spec.rpc_timeout} total number of workers {spec.workers}.")
     try:
         if rank == 0:
             agent_backend = rpc.TensorPipeRpcBackendOptions(num_worker_threads=spec.num_worker_threads,
@@ -570,7 +616,7 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
             await worker(rank=rank, world_size=world_size, self_logger=AsyncLogger())
 
         # await logger.
-        print(f"Shutdown down {worker_name}")
+        print_green(f"Shutdown down {worker_name}")
         rpc.shutdown(graceful=True)
     except FileNotFoundError as file_not_found:
         print_red(str(file_not_found))

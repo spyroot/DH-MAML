@@ -6,10 +6,11 @@ This  wrapper is adapted from rllab's [1] wrapper `NormalizedEnv`
     "Benchmarking Deep Reinforcement Learning for Continuous Control", 2016
     (https://arxiv.org/abs/1604.06778)
 """
-from typing import Optional
+from typing import Optional, Tuple
 import gym
 from gym import spaces
 import numpy as np
+from gym.core import ObsType
 
 
 class NormalizedActionWrapper(gym.ActionWrapper):
@@ -48,6 +49,10 @@ class NormalizedActionWrapper(gym.ActionWrapper):
         action = np.clip(action, -self.scale, self.scale)
         return action
 
+    def reset(self, **kwargs) -> Tuple[ObsType, dict]:
+        """Resets the environment with kwargs."""
+        return self.env.reset(**kwargs)
+
 
 class NormalizedObservationWrapper(gym.ObservationWrapper):
     def __init__(self, env, alpha=1e-3, epsilon=1e-8):
@@ -58,6 +63,10 @@ class NormalizedObservationWrapper(gym.ObservationWrapper):
         dtype = self.observation_space.dtype or np.float32
         self._mean = np.zeros(shape, dtype=dtype)
         self._var = np.ones(shape, dtype=dtype)
+
+    def reset(self, **kwargs) -> Tuple[ObsType, dict]:
+        """Resets the environment with kwargs."""
+        return self.env.reset(**kwargs)
 
     def observation(self, observation):
         """
@@ -87,3 +96,7 @@ class NormalizedRewardWrapper(gym.RewardWrapper):
         self._mean = (1.0 - self.alpha) * self._mean + self.alpha * reward
         self._var = (1.0 - self.alpha) * self._var + self.alpha * np.square(reward - self._mean)
         return (reward - self._mean) / (np.sqrt(self._var) + self.epsilon)
+
+    def reset(self, **kwargs) -> Tuple[ObsType, dict]:
+        """Resets the environment with kwargs."""
+        return self.env.reset(**kwargs)

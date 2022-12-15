@@ -15,11 +15,11 @@ def print_red(msg: str):
 
 
 def print_blue(msg: str):
-    print(f"{bcolors.WARNING}{msg}{bcolors.ENDC}")
+    print(f"{bcolors.OKBLUE}{msg}{bcolors.ENDC}")
 
 
 def print_green(msg: str):
-    print(f"{bcolors.WARNING}{msg}{bcolors.ENDC}")
+    print(f"{bcolors.OKGREEN}{msg}{bcolors.ENDC}")
 
 
 def red_str(msg: str) -> str:
