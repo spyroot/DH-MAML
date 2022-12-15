@@ -1,3 +1,8 @@
+"""
+The agent algorithm compute adaption ,
+i.e grad in respect old policy, after we compute conjugate_gradient
+and did a pass we compute surrogate_loss again.
+"""
 import traceback
 from typing import Tuple
 
@@ -20,7 +25,11 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
     def __init__(self, policy: Policy, spec: RunningSpec):
         """
         Take policy that TRPO will use to compute KL terms and specs.
-        Specs must contain CG line step parameters
+        Specs must contain CG line step parameters.
+
+        The adapt method is inner loop optimization.
+        Check the MAML paper for details.
+
         :param policy: policy based on reinforce
         :param spec:
         """
@@ -40,7 +49,6 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         """
         try:
             episodes.to_gpu()
-
             pi = self.policy(episodes.observations.view((-1, *episodes.observation_shape)), W=W)
             log_probs = pi.log_prob(episodes.actions.view((-1, *episodes.action_shape)))
             log_probs = log_probs.view(torch.max(episodes.lengths), episodes.batch_size)
@@ -112,11 +120,10 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             return loss_weighted.mean(), kls.mean(), detached_policy, inner_losses
         return loss_weighted.mean(), kls.mean(), detached_policy, inner_losses
 
-    async def step(self, train_futures, valid_futures, debug=True):
+    async def step(self, train_trajec, valid_trajec, debug=True):
         """
-
-        :param train_futures:
-        :param valid_futures:
+        :param train_trajec: list of trajectories that forms an episode.
+        :param valid_trajec: list of trajectories that forms an episode.
         :param debug:
         :return:
         """
@@ -124,9 +131,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         # need check why RPC bounce off to CPU sometime.
         self.policy.to(self.device)
 
-        logs = {}
-        num_meta_tasks = len(train_futures[0])
-        data = list(zip(zip(*train_futures), valid_futures))
+        trpo_metrics = {}
+        num_meta_tasks = len(train_trajec[0])
+        data = list(zip(zip(*train_trajec), valid_trajec))
 
         # params = None
         # for i in range(0, len(data)):
@@ -151,9 +158,9 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
         inner_loss = inner_loss.sum() / num_meta_tasks
         old_kl = old_kl.sum() / num_meta_tasks
 
-        logs["inner_pre"] = inner_loss
-        logs["old_loss"] = old_losses
-        logs["old_kl"] = old_kl
+        trpo_metrics["inner_pre"] = inner_loss
+        trpo_metrics["old_loss"] = old_losses
+        trpo_metrics["old_kl"] = old_kl
 
         try:
             grads = torch.autograd.grad(old_losses, list(self.policy.parameters()), retain_graph=True)
@@ -170,7 +177,7 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             step_size = 1.0
 
             _max_kl = torch.tensor(self.max_kl)
-            logs['ls_step'] = 0
+            trpo_metrics['ls_step'] = 0
             for _ in range(self.ls_max_steps):
                 vec2parameters(old_params - step_size * step, self.policy.parameters())
 
@@ -188,17 +195,17 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
                 new_kl = _new_kl.sum() / num_meta_tasks
 
                 # line step
-                logs['ls_step'] += 1
-                logs['improved'] = new_improved_loss
+                trpo_metrics['ls_step'] += 1
+                trpo_metrics['improved'] = new_improved_loss
                 if (new_improved_loss.item() < 0.0) and (new_kl < _max_kl):
-                    logs['inner_post'] = new_inner_loss
-                    logs['loss_post'] = new_improved_loss
-                    logs['kl_post'] = new_kl
+                    trpo_metrics['inner_post'] = new_inner_loss
+                    trpo_metrics['loss_post'] = new_improved_loss
+                    trpo_metrics['kl_post'] = new_kl
                     break
 
                 step_size *= self.ls_backtrack_ratio
                 self.ls_counter += 1
-                logs['ls_counter'] = self.ls_counter
+                trpo_metrics['ls_counter'] = self.ls_counter
             else:
                 vec2parameters(old_params, self.policy.parameters())
 
@@ -207,4 +214,4 @@ class ConcurrentMamlTRPO(AsyncGradientBasedMetaLearner):
             print(traceback.print_exc())
             raise trpo_err
 
-        return logs
+        return trpo_metrics

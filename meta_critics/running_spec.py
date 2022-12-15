@@ -24,6 +24,7 @@ class RunningSpecError(Exception):
 
 
 class RunningSpec:
+    # all mandatory keys in config.
     mandatory_keys = ['num_batches', 'num_meta_test', 'num_meta_task', 'num_trajectory', 'meta_test_freq',
                       'gamma', 'workers', 'experiment_name', 'env_name', 'wandb.entity', 'wandb.project',
                       'trajectory_sampler.remap_types',
@@ -39,7 +40,10 @@ class RunningSpec:
 
     def __init__(self, settings, mode, current_dir: Optional[str] = "."):
         """
-        :param settings:
+
+        :param settings:  setting a dict or namespace from args parser.
+        :param mode:  a current mode train / test etc.
+        :param current_dir:  a current dir used to resolve path to a /config/ directory.
         """
         self._debug = False
         self._mode = mode

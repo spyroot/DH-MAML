@@ -13,7 +13,8 @@ from meta_critics.running_spec import RunningSpec
 
 class GradientMetaLearner(object):
     def __init__(self, policy: Policy, spec: RunningSpec, debug=False):
-        """
+        """Base class for gradient mate learner
+        Mainly take all shared parameters for TRPO.
         :param policy: Agent Policy Meta Learner will use
         :param spec:  Specs for meta learner. Different Meta Learner might have own model specific.
         """

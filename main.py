@@ -86,6 +86,9 @@ if __name__ == '__main__':
                               "per observer to collect. Default 20")
     trainer.add_argument('--save_freq', type=int, default=20,
                          help="how often checkpoint policy.")
+    trainer.add_argument('--disable_meta_test', action='store_true',
+                         required=False, help="disable meta testing.")
+
 
     meta_test = parser.add_argument_group('Meta-Test')
     parser.add_argument('--meta_test_freq', type=int, default=100, required=False,

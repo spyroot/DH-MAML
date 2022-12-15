@@ -84,10 +84,9 @@ class DistributedMetaTrainer:
     def __init__(self, spec: RunningSpec,
                  world_size: int,
                  self_logger: Optional[AsyncLogger] = None):
-        """
-        A main logic for a trainer.  the entry point a start method,  and it asinio,
-        caller need call first
-        await start() that will start agents, rpc sync etc.
+        """The main logic for a trainer. The entry point is a start method,
+        and it asinio, the caller needs to call first await start() that will start
+        agents, RPC sync, etc.
 
         :param spec: A spec file, i.e. yaml or json , check config dir.
         :param world_size: a world_size  Number of processes participating in the job.
@@ -134,6 +133,9 @@ class DistributedMetaTrainer:
         #     print("Self logger is none.")
 
     def create_log_ifneed(self):
+        """Creates necessary logs,  directory taken from running spec.
+        :return:
+        """
         if self.spec.contains("log_dir"):
             from datetime import datetime
             current_dateTime = datetime.now()
@@ -146,11 +148,10 @@ class DistributedMetaTrainer:
         self.tf_writer = SummaryWriter(log_dir=self.log_dir)
 
     async def start(self) -> None:
-        """ Start main asyncio routine, it will create a policy
-        and Agent and the rest.
+        """ Start the main asyncio routine. It will create a policy
+        that the agents will use.
         :return:
         """
-
         self.log(f"DistributedMetaTrainer world size{self.world_size} staring.")
 
         self.num_batches = self.spec.get('num_batches', 'meta_task')
@@ -178,10 +179,12 @@ class DistributedMetaTrainer:
                                       self_logger=self.self_logger)
         self._started = True
         self._experiment_name = self.spec.get("experiment_name")
-        print_green(f"DistributedMetaTrainer world size {self.world_size} experiment {self._experiment_name} started.")
+        print_green(f"DistributedMetaTrainer world size "
+                    f"{self.world_size} experiment "
+                    f"{self._experiment_name} started.")
 
     def load_model(self):
-        """Load model, if training interrupted will load checkpoint.
+        """Load model, if training interrupted will load last checkpoint.
         :return:
         """
         model_file_name = self.spec.get('model_state_file', 'model_files')
@@ -505,7 +508,9 @@ class DistributedMetaTrainer:
 
                 # we perform meta test based on spec to track rewards.
                 # this not a final meta test.
-                await self.meta_test(episode_step, metric_receiver)
+                if self.spec.disable_meta_test:
+                    await self.meta_test(episode_step, metric_receiver)
+
                 if self.is_benchmark:
                     print(f"Execution time {timer() - start}")
                     time_trace.append(timer() - start)
