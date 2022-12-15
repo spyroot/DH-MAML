@@ -364,7 +364,7 @@ class DistributedMetaTrainer:
                 self.save_to_file(data_dict, train_returns, valid_returns)
 
             # self.spec.human_render
-            await self.human_render()
+            # await self.human_render()
 
         except Exception as err:
             print("Error during meta-test", err)
@@ -628,6 +628,8 @@ async def rpc_async_worker(rank: int, world_size: int, spec: RunningSpec) -> Non
     except Exception as other_exp:
         print(other_exp)
         print(traceback.print_exc())
+    finally:
+        del meta_trainer
 
 
 def ask_exit():
