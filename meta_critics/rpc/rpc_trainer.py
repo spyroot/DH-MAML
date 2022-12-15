@@ -364,7 +364,8 @@ class DistributedMetaTrainer:
                 self.save_to_file(data_dict, train_returns, valid_returns)
 
             # self.spec.human_render
-            # await self.human_render()
+            if self.spec.human_render:
+                await self.human_render()
 
         except Exception as err:
             print("Error during meta-test", err)

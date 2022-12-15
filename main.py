@@ -69,6 +69,8 @@ if __name__ == '__main__':
                         help="a path to the a model file.")
     parser.add_argument('--is_verbose', action='store_true', required=False,
                         help="Enable verbose out during test")
+    parser.add_argument('--human_render', action='store_true', required=False,
+                        help="observer agent in action")
 
     trainer = parser.add_argument_group('trainer')
     trainer.add_argument('--num_batches', type=int, default=500,
