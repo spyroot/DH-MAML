@@ -29,7 +29,7 @@ trainer:
   # Discount factor gamma.
   type: distributed_rpc
   save_freq: 20
-  meta_test_freq: 20
+  meta_test_freq: 100
   use_gae: True
   gamma_factor: 0.99
   gae_lambda_factor: 1.0

@@ -26,7 +26,7 @@ trainer:
   use_wandb: True
   type: distributed_rpc
   save_freq: 20
-  meta_test_freq: 20
+  meta_test_freq: 100
   gamma_factor: 0.99
   gae_lambda_factor: 1.0
   use_discount_gamma: True

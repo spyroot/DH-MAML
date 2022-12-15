@@ -58,7 +58,6 @@ class PolicyCreator:
         :return:
         """
         obs_dtype = string_to_torch_remaping[str(self.env.observation_space.dtype)]
-        print("OBS dtype", obs_dtype)
 
         if self.is_continuous_actions:
             output_size = reduce(mul, self.env.action_space.shape, 1)
